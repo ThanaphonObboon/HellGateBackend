@@ -1,0 +1,12 @@
+version: "3.7"
+services:
+  mongodb:
+    image: mongo
+    ports:
+      - 8081:27017
+    volumes:
+      - ./db:/data/db
+  case:
+    image: redis
+    ports:
+      - 8082:6379
