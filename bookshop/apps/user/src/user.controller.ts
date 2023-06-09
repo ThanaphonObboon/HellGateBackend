@@ -7,9 +7,8 @@ import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @EventPattern({ cmd: 'sum' })
+  @MessagePattern({ cmd: 'sum' })
   async getUserLists(): Promise<UserModelDto[]> {
-    console.log('get-users-lists');
-    return null;
+    return await this.userService.getUserLists();
   }
 }

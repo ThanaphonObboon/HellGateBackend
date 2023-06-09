@@ -8,7 +8,6 @@ export class AppController {
 
   @Get()
   async getHello(): Promise<UserModelDto[]> {
-    console.log('getHello');
     return await this.appService.getUserLists();
   }
 }

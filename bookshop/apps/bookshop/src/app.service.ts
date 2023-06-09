@@ -9,12 +9,7 @@ import { User } from 'schema/user.schema';
 export class AppService {
   constructor(@Inject('USER') private client: ClientProxy) {}
   async getUserLists(): Promise<UserModelDto[]> {
-    console.log('----------------------------1');
-    const result = await this.client.send({ cmd: 'sum' }, {});
-    const final = await lastValueFrom(result);
-    // return final;
-    console.log('----------------------------2');
-    // return plainToInstance(UserModelDto, data);
-    return null;
+    const result = await this.client.send<UserModelDto[]>({ cmd: 'sum' }, {});
+    return await lastValueFrom(result);
   }
 }
