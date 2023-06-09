@@ -15,7 +15,7 @@ export class User extends AbstractDocument {
   password: string;
 
   @Prop(String)
-  fullname: string;
+  fullName: string;
 
   @Prop(Number)
   bookOwnerCount: number;

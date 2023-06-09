@@ -5,7 +5,7 @@ export class UserModelDto extends AbstractDocument {
 
   password: string;
 
-  fullname: string;
+  fileName: string;
 
   bookOwnerCount: number;
 
