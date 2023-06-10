@@ -1,13 +1,18 @@
-import { AbstractDocument } from '@app/common';
+import { Types } from 'mongoose';
 
-export class UserModelDto extends AbstractDocument {
+export class UserModelDto {
+  _id: Types.ObjectId;
   username: string;
-
   password: string;
-
-  fileName: string;
-
+  firstName: string;
+  lastName: string;
+  fullName: string;
   bookOwnerCount: number;
-
   lastPurchaseDate: Date;
+  creeatedAt: Date;
+  updatedAt: Date;
+  //A=Active, I=Inactive, D=Deleted
+  status: string;
+  //admin, member
+  role: string;
 }

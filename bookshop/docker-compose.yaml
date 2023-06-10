@@ -9,4 +9,6 @@ services:
   case:
     image: redis
     ports:
-      - 8082:6379
+      - 8082:6380
+    volumes:
+      - ./redis/data:/data
