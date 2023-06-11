@@ -9,9 +9,11 @@ export class AuthenService {
   constructor(@Inject('USER') private client: ClientProxy) {}
   async login(body: LoginModel): Promise<AuthenUserModelDto> {
     const result = this.client.send<AuthenUserModelDto>(
-      { cmd: 'service.authen.login' },
+      { cmd: 'service.authen.signin' },
       body,
     );
     return await lastValueFrom(result);
   }
+  // async logout(): Promise<void> {}
+  // async refreshToken(): Promise<void> {}
 }

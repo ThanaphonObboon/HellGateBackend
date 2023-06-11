@@ -31,7 +31,7 @@ export class User {
   creeatedAt: Date;
   @Prop(Date)
   updatedAt: Date;
-  //A=Active, I=Inactive, D=Deleted
+  //A=Active, B=Block, D=Deleted
   @Prop(String)
   status: string;
   //admin, member

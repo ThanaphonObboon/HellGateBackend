@@ -3,7 +3,6 @@ import { Types } from 'mongoose';
 export class UserModelDto {
   _id: Types.ObjectId;
   username: string;
-  password: string;
   firstName: string;
   lastName: string;
   fullName: string;

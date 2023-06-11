@@ -7,6 +7,7 @@ import {
 import {
   CreateUserModelDto,
   UpdateUserModelDto,
+  UpdateUserPasswordModelDto,
 } from 'models/user-model/create-user-model.dto';
 import { UserModelDto } from 'models/user-model/user-model.dto';
 import { lastValueFrom } from 'rxjs';
@@ -49,10 +50,35 @@ export class UserService {
     );
     await lastValueFrom(result);
   }
-  async deleteUser(id: string): Promise<void> {
+  async countNewMember(): Promise<number> {
+    const result = await this.client.send<number>(
+      { cmd: 'service.users.count.new.member' },
+      {},
+    );
+    return await lastValueFrom(result);
+  }
+
+  async countAllUser(): Promise<number> {
+    const result = await this.client.send<number>(
+      { cmd: 'service.users.count.all.member' },
+      {},
+    );
+    return await lastValueFrom(result);
+  }
+  async passwordChange(
+    id: string,
+    req: UpdateUserPasswordModelDto,
+  ): Promise<void> {
     const result = await this.client.send<boolean>(
-      { cmd: 'service.users.delete' },
-      id,
+      { cmd: 'service.users.password.change' },
+      { id, req },
+    );
+    await lastValueFrom(result);
+  }
+  async ChangeStatusUser(id: string, status: string): Promise<void> {
+    const result = await this.client.send<boolean>(
+      { cmd: 'service.users.set.status' },
+      { id, status },
     );
     await lastValueFrom(result);
   }

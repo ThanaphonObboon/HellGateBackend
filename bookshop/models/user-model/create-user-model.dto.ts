@@ -28,3 +28,19 @@ export class UpdateUserModelDto {
   @IsNotEmpty({ message: 'กรุณากรอกนามสกุล' })
   lastName: string;
 }
+
+export class UpdateUserPasswordModelDto {
+  @IsNotEmpty({ message: 'กรุณากรอกรหัสผ่าน' })
+  @Matches(/^[A-z0-9!@#$%^&*]{5,20}$/, {
+    message: 'รหัสผ่านต้องมีความยาว 5-20 ตัวอักษรตัวเลขและตัวพิเศษ',
+  })
+  currentPassword: string;
+  @IsNotEmpty({ message: 'กรุณากรอกรหัสผ่าน' })
+  @Matches(/^[A-z0-9!@#$%^&*]{5,20}$/, {
+    message: 'รหัสผ่านต้องมีความยาว 5-20 ตัวอักษรตัวเลขและตัวพิเศษ',
+  })
+  newPassword: string;
+  @IsNotEmpty({ message: 'กรุณากรอกรหัสผ่าน' })
+  @IsComparePassword('newPassword', { message: 'รหัสผ่านไม่ตรงกัน' })
+  rePassword: string;
+}

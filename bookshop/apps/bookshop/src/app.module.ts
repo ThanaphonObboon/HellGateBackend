@@ -7,6 +7,9 @@ import { AppController } from './app/app.controller';
 import { AuthenService } from './authen/authen.service';
 import { AuthenController } from './authen/authen.controller';
 import { CacheModule } from '@nestjs/cache-manager';
+import { JwtAuthenService } from '@app/common/helps/jwt-authen.service';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -16,8 +19,15 @@ import { CacheModule } from '@nestjs/cache-manager';
     CacheModule.register({
       isGlobal: true,
     }),
+    JwtModule.register({ global: true }),
+    ConfigModule.forRoot(),
   ],
   controllers: [UserController, AppController, AuthenController],
-  providers: [HttpResponseMessage, UserService, AuthenService],
+  providers: [
+    HttpResponseMessage,
+    UserService,
+    AuthenService,
+    JwtAuthenService,
+  ],
 })
 export class AppModule {}

@@ -8,6 +8,7 @@ import {
 import {
   CreateUserModelDto,
   UpdateUserModelDto,
+  UpdateUserPasswordModelDto,
 } from 'models/user-model/create-user-model.dto';
 import { UserModelDto } from 'models/user-model/user-model.dto';
 import { Model, Types } from 'mongoose';
@@ -15,19 +16,27 @@ import { CustomValidationPipe } from 'pipes/custom-validation.pipe';
 import { User } from 'schema/user.schema';
 import { generate } from 'password-hash';
 import { resolve } from 'path';
+import { verify } from 'password-hash';
 @Injectable()
 export class UserService {
   constructor(@InjectModel(User.name) private _userModel: Model<User>) {}
   async getUserLists(
     param: RequestPageParam,
   ): Promise<PagedResult<UserModelDto>> {
-    const options = {
+    let options: any = {};
+    options = {
       status: {
         $ne: 'D',
       },
     };
+    if (param.basicFilter) {
+      options.$or = [
+        { username: new RegExp(param.basicFilter.toString().trim(), 'i') },
+        { fullName: new RegExp(param.basicFilter.toString().trim(), 'i') },
+      ];
+    }
     // await new Promise((resolve, _) => {
-    //   setTimeout(() => resolve(true), 3000);
+    //   setTimeout(() => resolve(true), 2000);
     // });
     param.page = Number(param.page) || 1;
     param.pageSize = Number(param.pageSize) || 15;
@@ -58,7 +67,6 @@ export class UserService {
       model.lastName = item.lastName;
       model.fullName = item.fullName;
       model.username = item.username;
-      model.password = undefined;
       model.status = item.status;
       model.creeatedAt = item.creeatedAt;
       model.updatedAt = item.updatedAt;
@@ -76,7 +84,9 @@ export class UserService {
   ): Promise<UserModelDto> {
     const account = await this._userModel
       .findOne({
-        username: payload.body.username,
+        username: {
+          $regex: new RegExp('^' + payload.body.username + '$', 'i'),
+        },
         status: {
           $ne: 'D',
         },
@@ -97,7 +107,6 @@ export class UserService {
     });
     const user = await createdDocument.save();
     const userModel = user as UserModelDto;
-    userModel.password = undefined;
     return userModel;
   }
   async getUserById(id: string): Promise<UserModelDto> {
@@ -114,40 +123,66 @@ export class UserService {
       .exec();
     if (!account) throw new Error('ไม่พบข้อมูลผู้ใช้งาน');
     const data = account as UserModelDto;
-    data.password = undefined;
     return data;
   }
   async updateUser(id: string, req: UpdateUserModelDto): Promise<void> {
     if (!Types.ObjectId.isValid(id))
       throw new Error('รูปแบบของรหัสผู้ใช้งานไม่ถูกต้อง');
     const query = { _id: new Types.ObjectId(id) };
-    const update = {
-      fullName: req.firstName + ' ' + req.lastName,
-      firstName: req.firstName,
-      lastName: req.lastName,
-      updatedAt: new Date(),
-    };
-    const updatedUser = await this._userModel.findOneAndUpdate(query, update, {
-      new: true,
-    });
-    if (!updatedUser) throw new Error('ไม่พบข้อมูลผู้ใช้งาน');
+    const account = await this._userModel.findOne(query).exec();
+    if (!account) throw new Error('ไม่พบข้อมูลผู้ใช้งาน');
+    account.firstName = req.firstName;
+    account.lastName = req.lastName;
+    account.fullName = account.firstName + '' + account.lastName;
+    account.updatedAt = new Date();
+    account.save();
   }
-  async deleteUser(id: string): Promise<void> {
+  async countNewMember(): Promise<number> {
+    const date = new Date();
+    date.setDate(date.getDate() - 7);
+    console.log(date);
+    const count = await this._userModel
+      .countDocuments({
+        status: 'A',
+        role: 'member',
+        creeatedAt: { $gte: date },
+      })
+      .exec();
+    return count;
+  }
+  async countAllMember(): Promise<number> {
+    const count = await this._userModel
+      .countDocuments({
+        status: 'A',
+        role: 'member',
+      })
+      .exec();
+    return count;
+  }
+  async passwordChange(
+    id: string,
+    req: UpdateUserPasswordModelDto,
+  ): Promise<void> {
     if (!Types.ObjectId.isValid(id))
       throw new Error('รูปแบบของรหัสผู้ใช้งานไม่ถูกต้อง');
-    const query = {
-      _id: new Types.ObjectId(id),
-      status: {
-        $ne: 'D',
-      },
-    };
-    const update = {
-      status: 'D',
-      updatedAt: new Date(),
-    };
-    const updatedUser = await this._userModel.findOneAndUpdate(query, update, {
-      new: true,
-    });
-    if (!updatedUser) throw new Error('ไม่พบข้อมูลผู้ใช้งาน');
+    const query = { _id: new Types.ObjectId(id) };
+    const account = await this._userModel.findOne(query).exec();
+    if (!account) throw new Error('ไม่พบข้อมูลผู้ใช้งาน');
+    if (!verify(req.currentPassword, account.password))
+      throw new Error('รหัสผ่านเดิมไม่ถูกต้อง');
+    account.password = generate(req.newPassword);
+    account.creeatedAt = new Date();
+    await account.save();
+  }
+
+  async ChangeStatusUser(id: string, status: string): Promise<void> {
+    if (!Types.ObjectId.isValid(id))
+      throw new Error('รูปแบบของรหัสผู้ใช้งานไม่ถูกต้อง');
+    const query = { _id: new Types.ObjectId(id) };
+    const account = await this._userModel.findOne(query).exec();
+    if (!account) throw new Error('ไม่พบข้อมูลผู้ใช้งาน');
+    account.status = status;
+    account.creeatedAt = new Date();
+    await account.save();
   }
 }
