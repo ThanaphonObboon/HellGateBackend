@@ -14,7 +14,16 @@ import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [
     ClientsModule.register([
-      { name: 'USER', transport: Transport.TCP, options: { port: 3002 } },
+      {
+        name: 'USER_SERVICE',
+        transport: Transport.TCP,
+        options: { port: 3002 },
+      },
+      {
+        name: 'BOOK_SERVICE',
+        transport: Transport.TCP,
+        options: { port: 3001 },
+      },
     ]),
     CacheModule.register({
       isGlobal: true,

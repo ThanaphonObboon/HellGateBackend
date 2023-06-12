@@ -14,7 +14,7 @@ import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class UserService {
-  constructor(@Inject('USER') private client: ClientProxy) {}
+  constructor(@Inject('USER_SERVICE') private client: ClientProxy) {}
 
   async getUserLists(
     param: RequestPageParam = new RequestPageParam(),

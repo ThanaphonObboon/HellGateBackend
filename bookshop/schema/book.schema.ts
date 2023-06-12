@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
+import { Category } from './category.schema';
 
 export interface IStockHistory {
   amount: number;
@@ -28,14 +29,16 @@ export class Book {
   })
   bookId: Types.ObjectId;
   //ชื่อผู้เขียน
-  @Prop({ type: String })
+  @Prop({ type: String, default: '' })
   author: string;
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, default: '' })
   title: string;
-  @Prop({ type: String })
+  @Prop({ type: String, default: '' })
+  CoverImage: string;
+  @Prop({ type: String, default: '' })
   description: string;
-  @Prop({ type: String })
-  bookType: string;
+  // @Prop({ type: String, default: '' })
+  // bookType: string;
   @Prop({ type: Number, required: true, default: 0 })
   price: number;
   @Prop({ type: Number, required: true, default: 0 })
@@ -45,10 +48,10 @@ export class Book {
   @Prop({
     type: [
       {
-        soldAt: Date,
-        accountId: Types.ObjectId,
-        price: Number,
-        fullName: String,
+        createdAt: { type: Date, required: true, default: new Date() },
+        accountId: { type: Types.ObjectId, required: true },
+        price: { type: Number, required: true, default: 0 },
+        fullName: { type: String, required: true, default: '' },
       },
     ],
     default: [],
@@ -58,12 +61,12 @@ export class Book {
   @Prop({
     type: [
       {
-        amount: Number,
-        oldstock: Number,
-        stock: Number,
+        amount: { type: Number, required: true, default: 0 },
+        oldstock: { type: Number, required: true, default: 0 },
+        stock: { type: Number, required: true, default: 0 },
         //S=Sold, A=Adject
-        actionType: String,
-        createdAt: Date,
+        actionType: { type: String, required: true, default: 'A' },
+        createdAt: { type: Date, required: true, default: new Date() },
       },
     ],
     default: [],
@@ -75,5 +78,17 @@ export class Book {
   updatedAt: Date;
   @Prop({ type: String, default: 'A', required: true }) //A=Actived, R=Removed
   status: string;
+  @Prop({ type: { type: Types.ObjectId, ref: 'categories' } })
+  category: Types.ObjectId;
+  // @Prop({
+  //   required: true,
+  //   type: Types.ObjectId,
+  //   default: new Types.ObjectId(),
+  //   ref: 'Categories',
+  // })
+  // categoryId: Types.ObjectId;
+  // //ชื่อผู้เขียน
+  // @Prop({ type: String, required: true })
+  // categoryName: string;
 }
-export const bookSchema = SchemaFactory.createForClass(Book);
+export const BookSchema = SchemaFactory.createForClass(Book);

@@ -7,6 +7,6 @@ export class BookController {
 
   @Get()
   getHello(): string {
-    return this.bookService.getHello();
+    return 'this.bookService.getHello();';
   }
 }

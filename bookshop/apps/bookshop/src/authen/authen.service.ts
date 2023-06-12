@@ -6,7 +6,7 @@ import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class AuthenService {
-  constructor(@Inject('USER') private client: ClientProxy) {}
+  constructor(@Inject('USER_SERVICE') private client: ClientProxy) {}
   async login(body: LoginModel): Promise<AuthenUserModelDto> {
     const result = this.client.send<AuthenUserModelDto>(
       { cmd: 'service.authen.signin' },
