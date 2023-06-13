@@ -9,6 +9,8 @@ import { BookController } from './books/book.controller';
 import { BookService } from './books/book.service';
 import { Book, BookSchema } from 'schema/book.schema';
 import { Category, CategorySchema } from 'schema/category.schema';
+import { CategoriesController } from './categories/categories.controller';
+import { CategoriesService } from './categories/categories.service';
 // import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
@@ -22,7 +24,7 @@ import { Category, CategorySchema } from 'schema/category.schema';
     ]),
     JwtModule.register({ global: true }),
   ],
-  controllers: [BookController],
-  providers: [BookService, JwtAuthenService],
+  controllers: [BookController, CategoriesController],
+  providers: [BookService, JwtAuthenService, CategoriesService],
 })
 export class AppModule {}

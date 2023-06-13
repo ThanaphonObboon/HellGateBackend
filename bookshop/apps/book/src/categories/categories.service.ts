@@ -11,7 +11,6 @@ import {
 } from 'models/pagination-model/request-pagination';
 import { UserModelDto } from 'models/user-model/user-model.dto';
 import { Model, Types } from 'mongoose';
-import { async } from 'rxjs';
 import { Category } from 'schema/category.schema';
 import { User } from 'schema/user.schema';
 
@@ -56,9 +55,13 @@ export class CategoriesService {
       .limit(page.pageSizes)
       .exec();
     page.items = [];
+    console.log(items);
     items.forEach((item) => {
-      page.items.push(plainToClass(CategoryDto, item));
+      const model = plainToClass(CategoryDto, item);
+      model._id = item._id.toString();
+      page.items.push(model);
     });
+    console.log(page.items);
     return page;
   }
 
@@ -78,16 +81,43 @@ export class CategoriesService {
   }
 
   async createCategory(val: CreateCategoryDto): Promise<CategoryDto> {
+    const category: Category = await this._category
+      .findOne({
+        categoryName: {
+          $regex: new RegExp('^' + val.categoryName + '$', 'i'),
+        },
+        status: {
+          $ne: 'D',
+        },
+      })
+      .lean()
+      .exec();
+    if (category) throw new Error('มีหมวดหมู่นี้มีอยู่ในระบบแล้ว');
     const categoryDocument = new this._category({
+      bookInCategory: 0,
+      creeatedAt: new Date(),
       categoryName: val.categoryName,
       status: 'A',
     });
-    await categoryDocument.save();
-    return plainToClass(CategoryDto, categoryDocument as unknown as Category);
+    const data = await categoryDocument.save();
+    return plainToClass(CategoryDto, data);
   }
 
-  async updateCategory(id: string, val: CategoryDto): Promise<void> {
+  async updateCategory(id: string, val: CreateCategoryDto): Promise<void> {
     if (!Types.ObjectId.isValid(id)) throw new Error('รูปแบบของรหัสไม่ถูกต้อง');
+    const foundCategory: Category = await this._category
+      .findOne({
+        _id: { $ne: new Types.ObjectId(id) },
+        categoryName: {
+          $regex: new RegExp('^' + val.categoryName + '$', 'i'),
+        },
+        status: {
+          $ne: 'D',
+        },
+      })
+      .lean()
+      .exec();
+    if (foundCategory) throw new Error('มีหมวดหมู่นี้มีอยู่ในระบบแล้ว');
     const category = await this._category
       .findOne({
         _id: new Types.ObjectId(id),

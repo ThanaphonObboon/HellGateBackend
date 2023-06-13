@@ -3,15 +3,9 @@ import { HydratedDocument, Types } from 'mongoose';
 
 export type CategoryDocument = HydratedDocument<Category>;
 
-@Schema({ collection: 'categories', versionKey: false, _id: false })
+@Schema({ collection: 'categories', versionKey: false })
 export class Category {
-  @Prop({
-    required: true,
-    type: Types.ObjectId,
-    unique: true,
-    default: new Types.ObjectId(),
-  })
-  categoryId: Types.ObjectId;
+  // _id: Types.ObjectId;
   //ชื่อผู้เขียน
   @Prop({ type: String, required: true })
   categoryName: string;
@@ -21,7 +15,7 @@ export class Category {
   updatedAt: Date;
   @Prop({ type: String, default: 'A', required: true }) //A=Actived, R=Removed
   status: string;
-  @Prop({ type: Number, default: 0, required: true }) //A=Actived, R=Removed
+  @Prop({ type: Number, default: 0, required: true })
   bookInCategory: number;
 }
 export const CategorySchema = SchemaFactory.createForClass(Category);

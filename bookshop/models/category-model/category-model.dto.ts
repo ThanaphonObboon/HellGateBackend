@@ -1,9 +1,10 @@
+import { Type } from '@nestjs/passport';
 import { IsDate, IsNumber, IsString } from 'class-validator';
 import { Types } from 'mongoose';
 
 export class CategoryDto {
-  @IsDate()
-  categoryId: Types.ObjectId;
+  @IsString()
+  _id: string;
   @IsString()
   categoryName: string;
   @IsDate()

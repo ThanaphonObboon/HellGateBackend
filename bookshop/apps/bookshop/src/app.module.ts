@@ -10,6 +10,9 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { JwtAuthenService } from '@app/common/helps/jwt-authen.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
+import { CategoriesController } from './categories/categories.controller';
+import { CategoriesService } from './categories/categories.service';
+import { helperService } from '@app/common/helps/helper.service';
 
 @Module({
   imports: [
@@ -31,12 +34,19 @@ import { ConfigModule } from '@nestjs/config';
     JwtModule.register({ global: true }),
     ConfigModule.forRoot(),
   ],
-  controllers: [UserController, AppController, AuthenController],
+  controllers: [
+    UserController,
+    AppController,
+    AuthenController,
+    CategoriesController,
+  ],
   providers: [
     HttpResponseMessage,
     UserService,
     AuthenService,
     JwtAuthenService,
+    CategoriesService,
+    helperService,
   ],
 })
 export class AppModule {}
