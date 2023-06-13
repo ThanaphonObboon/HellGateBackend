@@ -20,8 +20,7 @@ export class CategoriesService {
   async getCategories(
     param: RequestPageParam,
   ): Promise<PagedResult<CategoryDto>> {
-    let options: any = {};
-    options = {
+    const options: any = {
       status: {
         $ne: 'D',
       },
@@ -55,13 +54,11 @@ export class CategoriesService {
       .limit(page.pageSizes)
       .exec();
     page.items = [];
-    console.log(items);
     items.forEach((item) => {
       const model = plainToClass(CategoryDto, item);
       model._id = item._id.toString();
       page.items.push(model);
     });
-    console.log(page.items);
     return page;
   }
 
@@ -100,7 +97,7 @@ export class CategoriesService {
       status: 'A',
     });
     const data = await categoryDocument.save();
-    return plainToClass(CategoryDto, data);
+    return data as unknown as CategoryDto;
   }
 
   async updateCategory(id: string, val: CreateCategoryDto): Promise<void> {

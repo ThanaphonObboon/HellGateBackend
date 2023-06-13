@@ -2,7 +2,7 @@ import { IsDate, IsNumber, IsString } from 'class-validator';
 
 export class BookDto {
   @IsString()
-  bookId: string;
+  _id: string;
   @IsString()
   //ชื่อผู้เขียน
   author: string;
@@ -18,6 +18,10 @@ export class BookDto {
   stock: number;
   @IsNumber()
   numberOfSales: number;
+  @IsString()
+  categoryId: string;
+  @IsString()
+  category: any;
   //   salesHistories: ISaleHistory[];
   //   stockHistories: IStockHistory[];
   @IsDate()

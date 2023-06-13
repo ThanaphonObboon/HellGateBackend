@@ -43,7 +43,7 @@ export class CategoriesService {
   async updateCategory(id: string, body: CreateCategoryDto): Promise<void> {
     const result = this.client.send<boolean>(
       { cmd: 'service.book.categories.update' },
-      { id, body },
+      { id, data: body },
     );
     await lastValueFrom(result);
   }

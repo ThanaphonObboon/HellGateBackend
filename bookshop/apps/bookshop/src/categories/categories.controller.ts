@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   Query,
@@ -13,7 +14,6 @@ import { CategoriesService } from './categories.service';
 import { HttpResponseMessage } from '@app/common';
 import { RequestPageParam } from 'models/pagination-model/request-pagination';
 import { CreateCategoryDto } from 'models/category-model/category-model.dto';
-import { helperService } from '@app/common/helps/helper.service';
 import { CustomValidationPipe } from 'pipes/custom-validation.pipe';
 
 @Controller('api/categories')
@@ -21,15 +21,19 @@ export class CategoriesController {
   constructor(
     private _category: CategoriesService,
     private readonly _responseMessage: HttpResponseMessage,
-    private readonly _helperService: helperService,
   ) {}
 
   @Get()
-  async getCategories(@Query() param: RequestPageParam) {
+  async getCategories(
+    @Query('pageSize', ParseIntPipe) pageSize = 15,
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('basicFilter') basicFilter = '',
+  ) {
     try {
-      param = this._helperService.isEmptyObject(param)
-        ? new RequestPageParam()
-        : param;
+      const param = new RequestPageParam();
+      param.page = page;
+      param.pageSize = pageSize;
+      param.basicFilter = basicFilter;
       const res = await this._category.getCategories(param);
       return this._responseMessage.Ok(res);
     } catch (e) {
@@ -70,8 +74,8 @@ export class CategoriesController {
     }
   }
 
-  @Delete()
-  async deleteCategory(id: string) {
+  @Delete(':id')
+  async deleteCategory(@Param('id') id: string) {
     try {
       const res = await this._category.deleteCategory(id);
       return this._responseMessage.Ok(res);

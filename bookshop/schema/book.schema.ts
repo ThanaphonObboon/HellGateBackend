@@ -19,15 +19,9 @@ export interface ISaleHistory {
 
 export type BookDocument = HydratedDocument<Book>;
 
-@Schema({ collection: 'books', versionKey: false, _id: false })
+@Schema({ collection: 'books', versionKey: false })
 export class Book {
-  @Prop({
-    required: true,
-    type: Types.ObjectId,
-    unique: true,
-    default: new Types.ObjectId(),
-  })
-  bookId: Types.ObjectId;
+  _id: Types.ObjectId;
   //ชื่อผู้เขียน
   @Prop({ type: String, default: '' })
   author: string;
@@ -39,11 +33,11 @@ export class Book {
   description: string;
   // @Prop({ type: String, default: '' })
   // bookType: string;
-  @Prop({ type: Number, required: true, default: 0 })
+  @Prop({ type: Number, default: 0 })
   price: number;
-  @Prop({ type: Number, required: true, default: 0 })
+  @Prop({ type: Number, default: 0 })
   stock: number;
-  @Prop({ type: Number, required: true, default: 0 })
+  @Prop({ type: Number, default: 0 })
   numberOfSales: number;
   @Prop({
     type: [
@@ -76,17 +70,17 @@ export class Book {
   creeatedAt: Date;
   @Prop({ type: Date })
   updatedAt: Date;
-  @Prop({ type: String, default: 'A', required: true }) //A=Actived, R=Removed
+  @Prop({ type: String, default: 'A' }) //A=Actived, R=Removed
   status: string;
   @Prop({ type: { type: Types.ObjectId, ref: 'categories' } })
   category: Types.ObjectId;
-  // @Prop({
-  //   required: true,
-  //   type: Types.ObjectId,
-  //   default: new Types.ObjectId(),
-  //   ref: 'Categories',
-  // })
-  // categoryId: Types.ObjectId;
+  @Prop({
+    required: true,
+    type: Types.ObjectId,
+    default: new Types.ObjectId(),
+    ref: 'Categories',
+  })
+  categoryId: Types.ObjectId;
   // //ชื่อผู้เขียน
   // @Prop({ type: String, required: true })
   // categoryName: string;

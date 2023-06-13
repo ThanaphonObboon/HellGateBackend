@@ -13,7 +13,10 @@ import { ConfigModule } from '@nestjs/config';
 import { CategoriesController } from './categories/categories.controller';
 import { CategoriesService } from './categories/categories.service';
 import { helperService } from '@app/common/helps/helper.service';
-
+// import type { RedisClientOptions } from 'redis';
+import { BooksController } from './books/books.controller';
+import { BooksService } from './books/books.service';
+// import * as redisStore from 'cache-manager-redis-store';
 @Module({
   imports: [
     ClientsModule.register([
@@ -28,6 +31,13 @@ import { helperService } from '@app/common/helps/helper.service';
         options: { port: 3001 },
       },
     ]),
+    // CacheModule.register<RedisClientOptions>({
+    //   store: redisStore,
+
+    //   // Store-specific configuration:
+    //   // host: 'localhost',
+    //   // port: 8082,
+    // }),
     CacheModule.register({
       isGlobal: true,
     }),
@@ -39,6 +49,7 @@ import { helperService } from '@app/common/helps/helper.service';
     AppController,
     AuthenController,
     CategoriesController,
+    BooksController,
   ],
   providers: [
     HttpResponseMessage,
@@ -47,6 +58,7 @@ import { helperService } from '@app/common/helps/helper.service';
     JwtAuthenService,
     CategoriesService,
     helperService,
+    BooksService,
   ],
 })
 export class AppModule {}

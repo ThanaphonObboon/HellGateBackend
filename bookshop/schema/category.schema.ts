@@ -5,7 +5,7 @@ export type CategoryDocument = HydratedDocument<Category>;
 
 @Schema({ collection: 'categories', versionKey: false })
 export class Category {
-  // _id: Types.ObjectId;
+  _id: Types.ObjectId;
   //ชื่อผู้เขียน
   @Prop({ type: String, required: true })
   categoryName: string;

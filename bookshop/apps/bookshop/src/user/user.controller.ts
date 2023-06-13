@@ -11,6 +11,7 @@ import {
   Query,
   UseGuards,
   Request,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { RequestPageParam } from 'models/pagination-model/request-pagination';
 import {
@@ -55,9 +56,15 @@ export class UserController {
   @Roles(UserRole.Admin)
   @Get()
   async getUserLists(
-    @Query() param: RequestPageParam = new RequestPageParam(),
+    @Query('pageSize', ParseIntPipe) pageSize = 15,
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('basicFilter') basicFilter = '',
   ) {
     try {
+      const param = new RequestPageParam();
+      param.page = page;
+      param.pageSize = pageSize;
+      param.basicFilter = basicFilter;
       const res = await this._userService.getUserLists(param);
       return this._responseMessage.Ok(res);
     } catch (e) {
