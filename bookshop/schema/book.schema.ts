@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-import { Category } from './category.schema';
 
 export interface IStockHistory {
   amount: number;
@@ -75,10 +74,7 @@ export class Book {
   @Prop({ type: { type: Types.ObjectId, ref: 'categories' } })
   category: Types.ObjectId;
   @Prop({
-    required: true,
     type: Types.ObjectId,
-    default: new Types.ObjectId(),
-    ref: 'Categories',
   })
   categoryId: Types.ObjectId;
   // //ชื่อผู้เขียน

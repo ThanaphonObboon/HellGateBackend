@@ -9,7 +9,7 @@ export class CreateBookDto {
   title: string;
   @IsString()
   description: string;
-  @Transform((value) => Number(value))
+  // @Transform((value) => Number(value))
   @IsNumber()
   price: number;
   @IsString()

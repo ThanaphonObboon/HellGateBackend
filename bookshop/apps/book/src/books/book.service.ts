@@ -56,25 +56,27 @@ export class BookService {
     param.pageSize =
       param.pageSize <= 0 || param.pageSize > 1000 ? 15 : param.pageSize;
     const page = new PagedResult<BookDto>();
-    const count = await this._book.aggregate([
-      {
-        $match: options, // เงื่อนไขที่ตรงกับเอกสาร
-      },
-      {
-        $lookup: {
-          from: 'categories', // ชื่อคอลเล็กชันที่ต้องการเชื่อมโยง
-          localField: 'category',
-          foreignField: '_id',
-          as: 'category',
+    const count = await this._book
+      .aggregate([
+        {
+          $match: options, // เงื่อนไขที่ตรงกับเอกสาร
         },
-      },
-      {
-        $match: populate.match, // เงื่อนไขที่ตรงกับเอกสารที่เชื่อมโยง
-      },
-      {
-        $count: 'totalItems', // นับจำนวนเอกสารที่ตรงกับเงื่อนไข
-      },
-    ]);
+        {
+          $lookup: {
+            from: 'categories', // ชื่อคอลเล็กชันที่ต้องการเชื่อมโยง
+            localField: 'category',
+            foreignField: '_id',
+            as: 'category',
+          },
+        },
+        {
+          $match: populate.match, // เงื่อนไขที่ตรงกับเอกสารที่เชื่อมโยง
+        },
+        {
+          $count: 'totalItems', // นับจำนวนเอกสารที่ตรงกับเงื่อนไข
+        },
+      ])
+      .exec();
     // const query = this._userModel.find(options);
     page.totalItems = count.length > 0 ? count[0].totalItems : 0;
     page.thisPages = param.page;
@@ -106,7 +108,14 @@ export class BookService {
     if (req.categoryId && !Types.ObjectId.isValid(req.categoryId))
       throw new Error('รูปแบบของรหัสไม่ถูกต้อง');
     const model = new this._book({
-      ...req,
+      _id: new Types.ObjectId(),
+      author: req.author,
+      title: req.title,
+      description: req.description,
+      price: req.price,
+      status: 'A',
+      stock: 0,
+      category: new Types.ObjectId(req.categoryId),
       categoryId: new Types.ObjectId(req.categoryId),
     });
     const result = await model.save();
