@@ -10,10 +10,14 @@ import {
 } from 'models/pagination-model/request-pagination';
 import { Model, Types } from 'mongoose';
 import { Book } from 'schema/book.schema';
+import { Category } from 'schema/category.schema';
 
 @Injectable()
 export class BookService {
-  constructor(@InjectModel(Book.name) private _book: Model<Book>) {}
+  constructor(
+    @InjectModel(Book.name) private _book: Model<Book>,
+    @InjectModel(Category.name) private _category: Model<Category>,
+  ) {}
   async getBooks(
     param: RequestPageParam,
     categoryId: string,
@@ -107,18 +111,22 @@ export class BookService {
   async createBook(req: CreateBookDto): Promise<BookDto> {
     if (req.categoryId && !Types.ObjectId.isValid(req.categoryId))
       throw new Error('รูปแบบของรหัสไม่ถูกต้อง');
-    const model = new this._book({
-      _id: new Types.ObjectId(),
+    const category = await this._category.findOne({
+      _id: new Types.ObjectId(req.categoryId),
+    });
+    if (!category) throw new Error('ไม่พบหมวดหมู่');
+    const book = await this._book.create({
       author: req.author,
       title: req.title,
       description: req.description,
       price: req.price,
       status: 'A',
       stock: 0,
-      category: new Types.ObjectId(req.categoryId),
-      categoryId: new Types.ObjectId(req.categoryId),
+      category: category._id,
     });
-    const result = await model.save();
+    const result = await book.save();
+    category.books.push(result._id);
+    await category.save();
     return plainToClass(BookDto, result.toObject());
   }
 }

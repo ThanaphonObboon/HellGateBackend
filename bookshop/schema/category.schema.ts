@@ -13,11 +13,11 @@ export class Category {
   creeatedAt: Date;
   @Prop({ type: Date })
   updatedAt: Date;
-  @Prop({ type: String, default: 'A', required: true }) //A=Actived, R=Removed
+  @Prop({ type: String, default: 'A' }) //A=Actived, R=Removed
   status: string;
-  @Prop({ type: Number, default: 0, required: true })
+  @Prop({ type: Number, default: 0 })
   bookInCategory: number;
-  @Prop({ type: { type: Types.ObjectId, ref: 'books' } })
-  books: Types.ObjectId;
+  @Prop([{ type: { type: Types.ObjectId, ref: 'books' } }])
+  books: [Types.ObjectId];
 }
 export const CategorySchema = SchemaFactory.createForClass(Category);
