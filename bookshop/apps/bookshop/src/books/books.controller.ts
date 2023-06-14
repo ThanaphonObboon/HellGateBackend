@@ -3,6 +3,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  DefaultValuePipe,
   Get,
   ParseIntPipe,
   Post,
@@ -22,12 +23,14 @@ export class BooksController {
 
   @Get()
   async getBooks(
-    @Query('pageSize', ParseIntPipe) pageSize = 15,
-    @Query('page', ParseIntPipe) page = 1,
-    @Query('basicFilter') basicFilter = '',
-    @Query('categoryId') categoryId = '',
-    @Query('sortbyStock') sortbyStock = 0,
-    @Query('sortbyPrice') sortbyPrice = 0,
+    @Query('pageSize', new DefaultValuePipe(15), ParseIntPipe) pageSize: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('basicFilter', new DefaultValuePipe('')) basicFilter: string,
+    @Query('categoryId', new DefaultValuePipe('')) categoryId: string,
+    @Query('sortbyStock', new DefaultValuePipe(0), ParseIntPipe)
+    sortbyStock: number,
+    @Query('sortbyPrice', new DefaultValuePipe(0), ParseIntPipe)
+    sortbyPrice: number,
   ) {
     try {
       const param = new RequestPageParam();

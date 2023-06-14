@@ -17,7 +17,5 @@ export class Category {
   status: string;
   @Prop({ type: Number, default: 0 })
   bookInCategory: number;
-  @Prop([{ type: { type: Types.ObjectId, ref: 'books' } }])
-  books: [Types.ObjectId];
 }
 export const CategorySchema = SchemaFactory.createForClass(Category);

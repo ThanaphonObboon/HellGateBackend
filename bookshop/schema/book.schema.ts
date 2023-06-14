@@ -72,8 +72,8 @@ export class Book {
   updatedAt: Date;
   @Prop({ type: String, default: 'A' }) //A=Actived, R=Removed
   status: string;
-  @Prop({ type: { type: Types.ObjectId, ref: 'categories' } })
-  category: Category;
+  @Prop({ type: Types.ObjectId })
+  categoryId: Types.ObjectId;
   // @Prop({
   //   type: Types.ObjectId,
   // })

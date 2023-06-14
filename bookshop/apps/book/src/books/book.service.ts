@@ -1,3 +1,4 @@
+import { helperService } from '@app/common/helps/helper.service';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { plainToClass } from 'class-transformer';
@@ -17,6 +18,7 @@ export class BookService {
   constructor(
     @InjectModel(Book.name) private _book: Model<Book>,
     @InjectModel(Category.name) private _category: Model<Category>,
+    private readonly _helper: helperService,
   ) {}
   async getBooks(
     param: RequestPageParam,
@@ -29,28 +31,26 @@ export class BookService {
         $ne: 'D',
       },
     };
-    const populate: any = {
-      path: 'category',
-      match: {},
+    const sortOption: any = {
+      createdAt: -1,
     };
-    const sortOption: any = {};
     if (param.basicFilter) {
-      populate.match = {
-        $or: [
-          {
-            categoryName: new RegExp(param.basicFilter.toString().trim(), 'i'),
-          },
-        ],
-      };
       options.$or = [
         { author: new RegExp(param.basicFilter.toString().trim(), 'i') },
         { title: new RegExp(param.basicFilter.toString().trim(), 'i') },
         { description: new RegExp(param.basicFilter.toString().trim(), 'i') },
+        {
+          'category.categoryName': new RegExp(
+            param.basicFilter.toString().trim(),
+            'i',
+          ),
+        },
       ];
     }
-    if (categoryId) options.category = categoryId;
-    if (sortbyPrice != 0) sortOption.price = sortbyPrice;
-    if (sortbyStock != 0) sortOption.stock = sortbyStock;
+    if (categoryId) options.categoryId = this._helper.toObjectId(categoryId);
+    if (sortbyPrice && sortbyPrice != 0) sortOption.price = sortbyPrice;
+    if (sortbyStock && sortbyStock != 0) sortOption.stock = sortbyStock;
+    // console.log('sortOption', sortOption);
     // await new Promise((resolve, _) => {
     //   setTimeout(() => resolve(true), 2000);
     // });
@@ -63,18 +63,15 @@ export class BookService {
     const count = await this._book
       .aggregate([
         {
-          $match: options, // เงื่อนไขที่ตรงกับเอกสาร
-        },
-        {
           $lookup: {
             from: 'categories', // ชื่อคอลเล็กชันที่ต้องการเชื่อมโยง
-            localField: 'category',
+            localField: 'categoryId',
             foreignField: '_id',
             as: 'category',
           },
         },
         {
-          $match: populate.match, // เงื่อนไขที่ตรงกับเอกสารที่เชื่อมโยง
+          $match: options, // เงื่อนไขที่ตรงกับเอกสาร
         },
         {
           $count: 'totalItems', // นับจำนวนเอกสารที่ตรงกับเงื่อนไข
@@ -83,6 +80,7 @@ export class BookService {
       .exec();
     // const query = this._userModel.find(options);
     page.totalItems = count.length > 0 ? count[0].totalItems : 0;
+    // console.log(page.totalItems);
     page.thisPages = param.page;
     page.pageSizes = param.pageSize;
     page.totalPages = Math.ceil(
@@ -90,19 +88,37 @@ export class BookService {
     );
     const skip = (page.thisPages - 1) * page.pageSizes;
     const items = await this._book
-      .find(options)
-      .populate(populate)
-      .sort(sortOption)
-      .lean()
-      .skip(skip)
-      .limit(page.pageSizes)
+      .aggregate([
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'categoryId',
+            foreignField: '_id',
+            as: 'category',
+          },
+        },
+        {
+          $match: options,
+        },
+        {
+          $sort: sortOption,
+        },
+        {
+          $skip: skip,
+        },
+        {
+          $limit: page.pageSizes,
+        },
+      ])
       .exec();
     page.items = [];
     items.forEach((item) => {
-      console.log(item);
-      const model = plainToClass(BookDto, item);
-      model._id = item._id.toString();
-      model.category = item.category;
+      // console.log(item);
+      const model = plainToClass(BookDto, item, {
+        excludeExtraneousValues: true,
+      });
+      // model._id = item._id.toString();
+      // model.categoryName = item?.category[0]?.categoryName;
       page.items.push(model);
     });
     return page;
@@ -122,10 +138,10 @@ export class BookService {
       price: req.price,
       status: 'A',
       stock: 0,
-      category: category._id,
+      categoryId: category._id,
     });
     const result = await book.save();
-    category.books.push(result._id);
+    category.bookInCategory += 1;
     await category.save();
     return plainToClass(BookDto, result.toObject());
   }
