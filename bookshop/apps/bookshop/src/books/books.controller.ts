@@ -11,12 +11,16 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { RequestPageParam } from 'models/pagination-model/request-pagination';
 import { BooksService } from './books.service';
 import { CreateBookDto } from 'models/book-model/book-create-model.dto';
 import { CustomValidationPipe } from 'pipes/custom-validation.pipe';
-
+import { Request } from '@nestjs/common';
+import { AuthGuard } from '@app/common/helps/auth.guard';
+import { Roles } from '@app/common/helps/roles.decorator';
+import { UserRole } from '@app/common/helps/role.enum';
 @Controller('api/books')
 export class BooksController {
   constructor(
@@ -60,6 +64,8 @@ export class BooksController {
       throw new BadRequestException(e.message);
     }
   }
+  @UseGuards(AuthGuard)
+  @Roles(UserRole.Admin)
   @Post()
   async createBook(@Body(new CustomValidationPipe()) req: CreateBookDto) {
     try {
@@ -69,7 +75,8 @@ export class BooksController {
       throw new BadRequestException(e.message);
     }
   }
-
+  @UseGuards(AuthGuard)
+  @Roles(UserRole.Admin)
   @Put(':id')
   async updateBook(
     @Param('id') id: string,
@@ -82,11 +89,42 @@ export class BooksController {
       throw new BadRequestException(e.message);
     }
   }
-
+  @UseGuards(AuthGuard)
+  @Roles(UserRole.Admin)
   @Delete(':id')
   async deleteBook(@Param('id') id: string) {
     try {
       await this._book.deleteBook(id);
+      return this._responseMessage.Ok();
+    } catch (e) {
+      throw new BadRequestException(e.message);
+    }
+  }
+  @UseGuards(AuthGuard)
+  // @Get(':bookId/buy')
+  @Get('me/owners')
+  async ownerBook(
+    @Request() req: any,
+    @Query('pageSize', new DefaultValuePipe(15), ParseIntPipe) pageSize: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('basicFilter', new DefaultValuePipe('')) basicFilter: string,
+  ) {
+    try {
+      const param = new RequestPageParam();
+      param.page = page;
+      param.pageSize = pageSize;
+      param.basicFilter = basicFilter;
+      const data = await this._book.ownerBook(req.user.id, param);
+      return this._responseMessage.Ok(data);
+    } catch (e) {
+      throw new BadRequestException(e.message);
+    }
+  }
+  @UseGuards(AuthGuard)
+  @Post(':bookId/buy')
+  async userBuyBook(@Request() req: any, @Param('bookId') bookId: string) {
+    try {
+      await this._book.userBuyBook(req.user.id, bookId);
       return this._responseMessage.Ok();
     } catch (e) {
       throw new BadRequestException(e.message);

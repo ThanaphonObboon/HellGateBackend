@@ -16,6 +16,8 @@ import { helperService } from '@app/common/helps/helper.service';
 import { InventoriesController } from './inventories/inventories.controller';
 import { InventoriesService } from './inventories/inventories.service';
 import { StockHistory, StockHistorySchema } from 'schema/stock-history.schema';
+import { SalesHistory, SalesHistorySchema } from 'schema/sales-history';
+import { UserBook, UserBookSchema } from 'schema/user-book';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { StockHistory, StockHistorySchema } from 'schema/stock-history.schema';
       { name: Book.name, schema: BookSchema },
       { name: Category.name, schema: CategorySchema },
       { name: StockHistory.name, schema: StockHistorySchema },
+      { name: SalesHistory.name, schema: SalesHistorySchema },
+      { name: UserBook.name, schema: UserBookSchema },
     ]),
     JwtModule.register({ global: true }),
   ],

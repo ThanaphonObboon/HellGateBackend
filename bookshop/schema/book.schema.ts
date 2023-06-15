@@ -2,24 +2,6 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import { Category } from './category.schema';
 
-export interface IStockHistory {
-  //แปลี่ยนแปลงจำนวนหนังสือ
-  amount: number;
-  //stockเก่า
-  oldstock: number;
-  //stockใหม่
-  stock: number;
-  //S=Sold, A=Adject
-  actionType: string;
-  createdAt: Date;
-}
-export interface ISaleHistory {
-  soldAt: Date;
-  saleAccountId: Types.ObjectId;
-  price: number;
-  fullName: string;
-}
-
 export type BookDocument = HydratedDocument<Book>;
 
 @Schema({ collection: 'books', versionKey: false })
@@ -50,12 +32,5 @@ export class Book {
   status: string;
   @Prop({ type: Types.ObjectId })
   categoryId: Types.ObjectId;
-  // @Prop({
-  //   type: Types.ObjectId,
-  // })
-  // categoryId: Types.ObjectId;
-  // //ชื่อผู้เขียน
-  // @Prop({ type: String, required: true })
-  // categoryName: string;
 }
 export const BookSchema = SchemaFactory.createForClass(Book);

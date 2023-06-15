@@ -1,6 +1,7 @@
 import { Expose, Transform, TransformFnParams } from 'class-transformer';
 import { IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
 import { CategoryDto } from 'models/category-model/category-model.dto';
+import { Types } from 'mongoose';
 import { Category } from 'schema/category.schema';
 
 export class BookDto {
@@ -18,9 +19,9 @@ export class BookDto {
   @Expose()
   @IsString()
   description: string;
-  @Expose()
-  @IsString()
-  bookType: string;
+  // @Expose()
+  // @IsString()
+  // bookType: string;
   @Expose()
   @IsNumber()
   price: number;
@@ -52,4 +53,57 @@ export class BookDto {
   @Expose()
   @IsString() //A=Actived, R=Removed
   status: string;
+}
+
+export class UserBookDto {
+  @Expose()
+  @Transform((value: TransformFnParams) => value.obj._id)
+  @IsString()
+  _id: string;
+  @Expose()
+  @Transform((value: TransformFnParams) => value.obj?.userId || '')
+  @IsString()
+  userId: string;
+  @Expose()
+  @IsDate()
+  buyAt: Date;
+  @Expose()
+  @Transform((value: TransformFnParams) => value.obj?.bookId || '')
+  @IsString()
+  bookId: string;
+  @Transform(
+    (value: TransformFnParams) =>
+      value.obj?.book?.find(() => true)?.author || '',
+  )
+  @Expose()
+  @IsString()
+  author: string;
+  @Transform(
+    (value: TransformFnParams) =>
+      value.obj?.book?.find(() => true)?.title || '',
+  )
+  @Expose()
+  @IsString()
+  title: string;
+  @Transform(
+    (value: TransformFnParams) =>
+      value.obj?.book?.find(() => true)?.description || '',
+  )
+  @Expose()
+  @IsString()
+  description: string;
+  @Expose()
+  @Transform(
+    (value: TransformFnParams) =>
+      value.obj?.category?.find(() => true)?._id || '',
+  )
+  @IsString()
+  categoryId: string;
+  @Expose()
+  @Transform(
+    (value: TransformFnParams) =>
+      value.obj?.category?.find(() => true)?.categoryName || '',
+  )
+  @IsString()
+  categoryName: string;
 }

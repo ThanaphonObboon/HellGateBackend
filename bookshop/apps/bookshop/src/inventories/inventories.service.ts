@@ -24,11 +24,11 @@ export class InventoriesService {
     );
     return await lastValueFrom(result);
   }
-  async adjustStock(bookId: string, body: AdjustInventoriesDto) {
+  async adjustStock(bookId: string, body: AdjustInventoriesDto): Promise<void> {
     const result = this.client.send<boolean>(
       { cmd: 'service.inventory.adjust.stock' },
       { bookId, amount: body.amount },
     );
-    return await lastValueFrom(result);
+    await lastValueFrom(result);
   }
 }

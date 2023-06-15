@@ -13,10 +13,14 @@ import { InventoriesService } from './inventories.service';
 import { AdjustInventoriesDto } from 'models/Inventories-model/Inventories-model.dto';
 import { CustomValidationPipe } from 'pipes/custom-validation.pipe';
 import { RequestPageParam } from 'models/pagination-model/request-pagination';
+import { HttpResponseMessage } from '@app/common';
 
 @Controller('api/inventories')
 export class InventoriesController {
-  constructor(private _invenService: InventoriesService) {}
+  constructor(
+    private readonly _invenService: InventoriesService,
+    private readonly _responseMessage: HttpResponseMessage,
+  ) {}
 
   @Put(':id/adjustStock')
   async adjustStock(
@@ -24,7 +28,8 @@ export class InventoriesController {
     @Body(new CustomValidationPipe()) body: AdjustInventoriesDto,
   ) {
     try {
-      return await this._invenService.adjustStock(bookId, body);
+      await this._invenService.adjustStock(bookId, body);
+      return this._responseMessage.Ok();
     } catch (e) {
       throw new BadRequestException(e.message);
     }

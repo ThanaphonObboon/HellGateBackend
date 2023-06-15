@@ -5,8 +5,9 @@ import {
 import { StockHistoryDto } from 'models/Inventories-model/Inventories-model.dto';
 import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
 import { InventoriesService } from './inventories.service';
+import { Controller } from '@nestjs/common';
 
-// @Controller('inventories')
+@Controller()
 export class InventoriesController {
   constructor(private readonly _inventory: InventoriesService) {}
 
@@ -29,8 +30,7 @@ export class InventoriesController {
     @Payload() payload: { bookId: string; amount: number },
   ): Promise<boolean> {
     try {
-      console.log('payload', this._inventory);
-      await this._inventory.adjustInventories(payload.bookId, payload.amount);
+      await this._inventory.adjustStock(payload.bookId, payload.amount);
       return true;
     } catch (e) {
       throw new RpcException(e.message);

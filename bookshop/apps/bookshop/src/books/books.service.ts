@@ -56,6 +56,20 @@ export class BooksService {
     );
     return await lastValueFrom(result);
   }
+  async ownerBook(userId: string, param: RequestPageParam): Promise<BookDto> {
+    const result = this.client.send<BookDto>(
+      { cmd: 'service.book.books.owner' },
+      { userId, param },
+    );
+    return await lastValueFrom(result);
+  }
+  async userBuyBook(userId: string, bookId: string): Promise<BookDto> {
+    const result = this.client.send<BookDto>(
+      { cmd: 'service.book.books.buy' },
+      { userId, bookId },
+    );
+    return await lastValueFrom(result);
+  }
 }
 
 // @Query('pageSize', ParseIntPipe) pageSize = 15,

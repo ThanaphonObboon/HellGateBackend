@@ -6,7 +6,7 @@ import {
   RequestPageParam,
   PagedResult,
 } from 'models/pagination-model/request-pagination';
-import { BookDto } from 'models/book-model/book-model.dto';
+import { BookDto, UserBookDto } from 'models/book-model/book-model.dto';
 import { CreateBookDto } from 'models/book-model/book-create-model.dto';
 // import { Types } from 'mongoose';
 
@@ -71,6 +71,29 @@ export class BookController {
     try {
       const data = await this._bookService.getBookById(id);
       return data;
+    } catch (e) {
+      throw new RpcException(e.message);
+    }
+  }
+
+  @MessagePattern({ cmd: 'service.book.books.buy' })
+  async userBuyBook(
+    @Payload() payload: { userId: string; bookId: string },
+  ): Promise<boolean> {
+    try {
+      await this._bookService.userbuyBook(payload.userId, payload.bookId);
+      return true;
+    } catch (e) {
+      throw new RpcException(e.message);
+    }
+  }
+
+  @MessagePattern({ cmd: 'service.book.books.owner' })
+  async ownerBook(
+    @Payload() payload: { userId: string; param: RequestPageParam },
+  ): Promise<PagedResult<UserBookDto>> {
+    try {
+      return await this._bookService.ownerBook(payload.userId, payload.param);
     } catch (e) {
       throw new RpcException(e.message);
     }

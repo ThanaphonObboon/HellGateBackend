@@ -19,7 +19,7 @@ export class InventoriesService {
     @InjectConnection() private readonly connection: Connection,
     private readonly _helper: helperService,
   ) {}
-  async adjustInventories(bookId: string, amount: number): Promise<void> {
+  async adjustStock(bookId: string, amount: number): Promise<void> {
     console.log('payload', bookId, amount);
     const transactionSession = await this.connection.startSession();
     transactionSession.startTransaction();
@@ -37,6 +37,7 @@ export class InventoriesService {
         oldstock: book.stock,
         createdAt: new Date(),
         stock: amount,
+        bookId: new Types.ObjectId(bookId),
       });
       book.stock = amount;
       await book.save();
@@ -54,11 +55,7 @@ export class InventoriesService {
     bookId: string,
     param: RequestPageParam,
   ): Promise<PagedResult<StockHistoryDto>> {
-    const options: any = {
-      status: {
-        $ne: 'D',
-      },
-    };
+    const options: any = {};
     const sortOption: any = {
       createdAt: -1,
     };
@@ -104,7 +101,7 @@ export class InventoriesService {
       Number(page.totalItems) / Number(page.pageSizes),
     );
     const skip = (page.thisPages - 1) * page.pageSizes;
-    const items = await this._book
+    const items = await this._stockHistory
       .aggregate([
         {
           $lookup: {
@@ -129,6 +126,7 @@ export class InventoriesService {
       ])
       .exec();
     page.items = [];
+    // console.log(items);
     items.forEach((item) => {
       const model = this._helper.plainToClass(StockHistoryDto, item);
       page.items.push(model);

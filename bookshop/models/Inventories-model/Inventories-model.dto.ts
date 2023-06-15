@@ -31,15 +31,15 @@ export class StockHistoryDto {
   @IsString()
   @Transform((value) => value.obj?.bookId)
   bookId: string;
-  @Transform((value) => value.obj?.book?.title || null)
+  @Transform((value) => value.obj?.book?.find(() => true)?.title || null)
   @Expose()
   @IsString()
   title: string;
-  @Transform((value) => value.obj?.book?.CoverImage || null)
+  @Transform((value) => value.obj?.book?.find(() => true)?.CoverImage || null)
   @Expose()
   @IsString()
   CoverImage: string;
-  @Transform((value) => value.obj?.book?.description || null)
+  @Transform((value) => value.obj?.book?.find(() => true)?.description || null)
   @Expose()
   @IsString()
   description: string;

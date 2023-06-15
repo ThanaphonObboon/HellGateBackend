@@ -4,7 +4,7 @@ import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { plainToClass } from 'class-transformer';
 import { log } from 'console';
 import { CreateBookDto } from 'models/book-model/book-create-model.dto';
-import { BookDto } from 'models/book-model/book-model.dto';
+import { BookDto, UserBookDto } from 'models/book-model/book-model.dto';
 import {
   PagedResult,
   RequestPageParam,
@@ -12,11 +12,17 @@ import {
 import { Connection, Model, Types } from 'mongoose';
 import { Book } from 'schema/book.schema';
 import { Category } from 'schema/category.schema';
+import { SalesHistory } from 'schema/sales-history';
+import { UserBook } from 'schema/user-book';
+import { User } from 'schema/user.schema';
 
 @Injectable()
 export class BookService {
   constructor(
     @InjectModel(Book.name) private _book: Model<Book>,
+    @InjectModel(User.name) private _user: Model<User>,
+    @InjectModel(UserBook.name) private _userBook: Model<UserBook>,
+    @InjectModel(SalesHistory.name) private _salesHistory: Model<SalesHistory>,
     @InjectModel(Category.name) private _category: Model<Category>,
     private readonly _helper: helperService,
     @InjectConnection() private readonly connection: Connection,
@@ -249,5 +255,144 @@ export class BookService {
     } finally {
       await transactionSession.endSession();
     }
+  }
+
+  async userbuyBook(userId: string, bookId: string): Promise<void> {
+    const transactionSession = await this.connection.startSession();
+    transactionSession.startTransaction();
+    try {
+      // console.log('userbuyBook', bookId, userId);
+      if (!Types.ObjectId.isValid(bookId) || !Types.ObjectId.isValid(userId))
+        throw new Error('รูปแบบของรหัสไม่ถูกต้อง');
+      const book = await this._book.findOne({
+        _id: new Types.ObjectId(bookId),
+        status: 'A',
+      });
+      // console.log('userbuyBook', book);
+      if (!book) throw new Error('ไม่พบข้อมูล');
+      if (book.stock <= 0) throw new Error('หนังสือหมด');
+      const user = await this._user.findOne({
+        _id: new Types.ObjectId(userId),
+        status: 'A',
+      });
+      if (!user) throw new Error('ไม่พบข้อมูล');
+      const ownerBook = await this._userBook.findOne({
+        bookId: new Types.ObjectId(bookId),
+        userId: new Types.ObjectId(userId),
+      });
+      if (ownerBook) throw new Error('มีหนังสืออยู่แล้ว');
+      const userBook = await this._userBook.create({
+        userId: user._id,
+        bookId: book._id,
+        buyAt: new Date(),
+      });
+      const salesHistory = await this._salesHistory.create({
+        bookId: book._id,
+        userId: user._id,
+        price: book.price,
+        createdAt: new Date(),
+      });
+      book.stock--;
+      user.bookOwnerCount++;
+      await salesHistory.save();
+      await userBook.save();
+      await book.save();
+      await user.save();
+      await transactionSession.commitTransaction();
+    } catch (err) {
+      await transactionSession.abortTransaction();
+      throw new Error(err.message);
+    } finally {
+      await transactionSession.endSession();
+    }
+  }
+
+  async ownerBook(
+    userId: string,
+    param: RequestPageParam,
+  ): Promise<PagedResult<UserBookDto>> {
+    const options: any = {
+      userId: new Types.ObjectId(userId),
+    };
+    const sortOption: any = {
+      createdAt: -1,
+    };
+    param.page = Number(param.page) || 1;
+    param.pageSize = Number(param.pageSize) || 15;
+    param.page = param.page <= 0 ? 1 : param.page;
+    param.pageSize =
+      param.pageSize <= 0 || param.pageSize > 1000 ? 15 : param.pageSize;
+    const page = new PagedResult<UserBookDto>();
+    const count = await this._userBook
+      .aggregate([
+        {
+          $lookup: {
+            from: 'books',
+            localField: 'bookId',
+            foreignField: '_id',
+            as: 'book',
+          },
+        },
+        {
+          $lookup: {
+            from: 'categories', // ชื่อคอลเล็กชันที่ต้องการเชื่อมโยง
+            localField: 'book.categoryId',
+            foreignField: '_id',
+            as: 'category',
+          },
+        },
+        {
+          $match: options, // เงื่อนไขที่ตรงกับเอกสาร
+        },
+        {
+          $count: 'totalItems', // นับจำนวนเอกสารที่ตรงกับเงื่อนไข
+        },
+      ])
+      .exec();
+    // const query = this._userModel.find(options);
+    page.totalItems = count.length > 0 ? count[0].totalItems : 0;
+    // console.log(page.totalItems);
+    page.thisPages = param.page;
+    page.pageSizes = param.pageSize;
+    page.totalPages = Math.ceil(
+      Number(page.totalItems) / Number(page.pageSizes),
+    );
+    const skip = (page.thisPages - 1) * page.pageSizes;
+    const items = await this._userBook
+      .aggregate([
+        {
+          $lookup: {
+            from: 'books',
+            localField: 'bookId',
+            foreignField: '_id',
+            as: 'book',
+          },
+        },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'book.categoryId',
+            foreignField: '_id',
+            as: 'category',
+          },
+        },
+        {
+          $match: options,
+        },
+        {
+          $sort: sortOption,
+        },
+        {
+          $skip: skip,
+        },
+        {
+          $limit: page.pageSizes,
+        },
+      ])
+      .exec();
+    page.items = items.map((item) =>
+      this._helper.plainToClass(UserBookDto, item),
+    );
+    return page;
   }
 }
