@@ -1,6 +1,6 @@
 import { helperService } from '@app/common/helps/helper.service';
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { plainToClass } from 'class-transformer';
 import { log } from 'console';
 import { CreateBookDto } from 'models/book-model/book-create-model.dto';
@@ -9,7 +9,7 @@ import {
   PagedResult,
   RequestPageParam,
 } from 'models/pagination-model/request-pagination';
-import { Model, Types } from 'mongoose';
+import { Connection, Model, Types } from 'mongoose';
 import { Book } from 'schema/book.schema';
 import { Category } from 'schema/category.schema';
 
@@ -19,6 +19,7 @@ export class BookService {
     @InjectModel(Book.name) private _book: Model<Book>,
     @InjectModel(Category.name) private _category: Model<Category>,
     private readonly _helper: helperService,
+    @InjectConnection() private readonly connection: Connection,
   ) {}
   async getBooks(
     param: RequestPageParam,
@@ -114,9 +115,7 @@ export class BookService {
     page.items = [];
     items.forEach((item) => {
       // console.log(item);
-      const model = plainToClass(BookDto, item, {
-        excludeExtraneousValues: true,
-      });
+      const model = this._helper.plainToClass<BookDto>(BookDto, item);
       // model._id = item._id.toString();
       // model.categoryName = item?.category[0]?.categoryName;
       page.items.push(model);
@@ -124,25 +123,131 @@ export class BookService {
     return page;
   }
 
+  async getBookById(id: string): Promise<BookDto> {
+    if (!Types.ObjectId.isValid(id)) throw new Error('รูปแบบของรหัสไม่ถูกต้อง');
+    const book = await this._book.aggregate([
+      {
+        $lookup: {
+          from: 'categories',
+          localField: '_id',
+          foreignField: 'categoryId',
+          as: 'category',
+        },
+      },
+      { $match: { _id: new Types.ObjectId(id), status: 'A' } },
+      { $limit: 1 },
+    ]);
+    if (book.length == 0) throw new Error('ไม่พบข้อมูล');
+    return this._helper.plainToClass(BookDto, book[0]);
+  }
+
   async createBook(req: CreateBookDto): Promise<BookDto> {
-    if (req.categoryId && !Types.ObjectId.isValid(req.categoryId))
-      throw new Error('รูปแบบของรหัสไม่ถูกต้อง');
-    const category = await this._category.findOne({
-      _id: new Types.ObjectId(req.categoryId),
-    });
-    if (!category) throw new Error('ไม่พบหมวดหมู่');
-    const book = await this._book.create({
-      author: req.author,
-      title: req.title,
-      description: req.description,
-      price: req.price,
-      status: 'A',
-      stock: 0,
-      categoryId: category._id,
-    });
-    const result = await book.save();
-    category.bookInCategory += 1;
-    await category.save();
-    return plainToClass(BookDto, result.toObject());
+    const transactionSession = await this.connection.startSession();
+    transactionSession.startTransaction();
+    try {
+      if (req.categoryId && !Types.ObjectId.isValid(req.categoryId))
+        throw new Error('รูปแบบของรหัสไม่ถูกต้อง');
+      const category = await this._category.findOne({
+        _id: new Types.ObjectId(req.categoryId),
+        status: 'A',
+      });
+      if (!category) throw new Error('ไม่พบหมวดหมู่');
+      const book = await this._book.create({
+        author: req.author,
+        title: req.title,
+        description: req.description,
+        price: req.price,
+        status: 'A',
+        stock: 0,
+        categoryId: category._id,
+      });
+      const result = await book.save();
+      category.bookInCategory = await this._book
+        .countDocuments({
+          categoryId: category._id,
+          status: 'A',
+        })
+        .lean();
+      await category.save();
+      await transactionSession.commitTransaction();
+      return this._helper.plainToClass<BookDto>(BookDto, result.toObject());
+    } catch (err) {
+      await transactionSession.abortTransaction();
+      throw new Error(err.message);
+    } finally {
+      await transactionSession.endSession();
+    }
+  }
+
+  async updateBook(id: string, req: CreateBookDto): Promise<void> {
+    const transactionSession = await this.connection.startSession();
+    transactionSession.startTransaction();
+    try {
+      if (req.categoryId && !Types.ObjectId.isValid(req.categoryId))
+        throw new Error('รูปแบบของรหัสไม่ถูกต้อง');
+      const category = await this._category.findOne({
+        _id: new Types.ObjectId(req.categoryId),
+        status: 'A',
+      });
+      if (!category) throw new Error('ไม่พบหมวดหมู่');
+      const book = await this._book.findOne({
+        _id: new Types.ObjectId(id),
+        status: 'A',
+      });
+      if (!book) throw new Error('ไม่พบข้อมูล');
+      book.author = req.author;
+      book.title = req.title;
+      book.description = req.description;
+      book.price = req.price;
+      book.categoryId = category._id;
+      await book.save();
+      category.bookInCategory = await this._book
+        .countDocuments({
+          categoryId: category._id,
+          status: 'A',
+        })
+        .lean();
+      await category.save();
+      await transactionSession.commitTransaction();
+    } catch (err) {
+      await transactionSession.abortTransaction();
+      throw new Error(err.message);
+    } finally {
+      await transactionSession.endSession();
+    }
+  }
+
+  async deleteBook(id: string): Promise<void> {
+    const transactionSession = await this.connection.startSession();
+    transactionSession.startTransaction();
+    try {
+      if (!Types.ObjectId.isValid(id))
+        throw new Error('รูปแบบของรหัสไม่ถูกต้อง');
+      const book = await this._book.findOne({
+        _id: new Types.ObjectId(id),
+        status: 'A',
+      });
+      if (!book) throw new Error('ไม่พบข้อมูล');
+      book.status = 'D';
+      await book.save();
+      const category = await this._category.findOne({
+        _id: new Types.ObjectId(id),
+      });
+      if (category) {
+        category.bookInCategory = await this._book
+          .countDocuments({
+            categoryId: category._id,
+            status: 'A',
+          })
+          .lean();
+        await category.save();
+      }
+      await transactionSession.commitTransaction();
+    } catch (err) {
+      await transactionSession.abortTransaction();
+      throw new Error(err.message);
+    } finally {
+      await transactionSession.endSession();
+    }
   }
 }

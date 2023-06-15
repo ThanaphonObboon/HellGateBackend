@@ -13,6 +13,9 @@ import { CategoriesController } from './categories/categories.controller';
 import { CategoriesService } from './categories/categories.service';
 import { helperService } from '@app/common/helps/helper.service';
 // import { CacheModule } from '@nestjs/cache-manager';
+import { InventoriesController } from './inventories/inventories.controller';
+import { InventoriesService } from './inventories/inventories.service';
+import { StockHistory, StockHistorySchema } from 'schema/stock-history.schema';
 
 @Module({
   imports: [
@@ -22,10 +25,17 @@ import { helperService } from '@app/common/helps/helper.service';
       { name: User.name, schema: UserSchema },
       { name: Book.name, schema: BookSchema },
       { name: Category.name, schema: CategorySchema },
+      { name: StockHistory.name, schema: StockHistorySchema },
     ]),
     JwtModule.register({ global: true }),
   ],
-  controllers: [BookController, CategoriesController],
-  providers: [BookService, JwtAuthenService, CategoriesService, helperService],
+  controllers: [BookController, CategoriesController, InventoriesController],
+  providers: [
+    BookService,
+    JwtAuthenService,
+    CategoriesService,
+    helperService,
+    InventoriesService,
+  ],
 })
 export class AppModule {}

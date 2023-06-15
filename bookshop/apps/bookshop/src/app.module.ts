@@ -16,6 +16,8 @@ import { helperService } from '@app/common/helps/helper.service';
 // import type { RedisClientOptions } from 'redis';
 import { BooksController } from './books/books.controller';
 import { BooksService } from './books/books.service';
+import { InventoriesController } from './inventories/inventories.controller';
+import { InventoriesService } from './inventories/inventories.service';
 // import * as redisStore from 'cache-manager-redis-store';
 @Module({
   imports: [
@@ -50,6 +52,7 @@ import { BooksService } from './books/books.service';
     AuthenController,
     CategoriesController,
     BooksController,
+    InventoriesController,
   ],
   providers: [
     HttpResponseMessage,
@@ -59,6 +62,7 @@ import { BooksService } from './books/books.service';
     CategoriesService,
     helperService,
     BooksService,
+    InventoriesService,
   ],
 })
 export class AppModule {}

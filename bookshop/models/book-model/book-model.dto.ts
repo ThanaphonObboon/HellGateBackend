@@ -31,11 +31,14 @@ export class BookDto {
   @IsNumber()
   numberOfSales: number;
   @Expose()
-  @Transform((value: TransformFnParams) => value.obj.categoryId)
+  @Transform((value: TransformFnParams) => value.obj?.categoryId || '')
   @IsString()
   categoryId: string;
   @Expose()
-  @Transform((value: TransformFnParams) => value.obj?.category[0]?.categoryName)
+  @Transform(
+    (value: TransformFnParams) =>
+      value.obj?.category?.find(() => true)?.categoryName || '',
+  )
   @IsString()
   categoryName: string;
   //   salesHistories: ISaleHistory[];

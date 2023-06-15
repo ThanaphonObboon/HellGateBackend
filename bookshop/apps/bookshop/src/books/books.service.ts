@@ -25,6 +25,30 @@ export class BooksService {
     return await lastValueFrom(result);
   }
 
+  async getBookById(id: string): Promise<BookDto> {
+    const result = this.client.send<BookDto>(
+      { cmd: 'service.book.books.id' },
+      id,
+    );
+    return await lastValueFrom(result);
+  }
+
+  async updateBook(id: string, body: CreateBookDto): Promise<void> {
+    const result = this.client.send<boolean>(
+      { cmd: 'service.book.books.update' },
+      { id, body },
+    );
+    await lastValueFrom(result);
+  }
+
+  async deleteBook(id: string): Promise<void> {
+    const result = this.client.send<boolean>(
+      { cmd: 'service.book.books.delete' },
+      id,
+    );
+    await lastValueFrom(result);
+  }
+
   async createBook(payload: CreateBookDto): Promise<BookDto> {
     const result = this.client.send<BookDto>(
       { cmd: 'service.book.books.create' },

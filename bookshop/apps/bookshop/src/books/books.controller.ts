@@ -4,9 +4,12 @@ import {
   Body,
   Controller,
   DefaultValuePipe,
+  Delete,
   Get,
+  Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import { RequestPageParam } from 'models/pagination-model/request-pagination';
@@ -37,7 +40,6 @@ export class BooksController {
       param.page = page;
       param.pageSize = pageSize;
       param.basicFilter = basicFilter;
-      console.log('param', param, categoryId, sortbyStock, sortbyPrice);
       const res = await this._book.getBooks(
         param,
         categoryId,
@@ -49,11 +51,43 @@ export class BooksController {
       throw new BadRequestException(e.message);
     }
   }
+  @Get(':id')
+  async GetBooksById(@Param('id') id: string) {
+    try {
+      const res = await this._book.getBookById(id);
+      return this._responseMessage.Ok(res);
+    } catch (e) {
+      throw new BadRequestException(e.message);
+    }
+  }
   @Post()
   async createBook(@Body(new CustomValidationPipe()) req: CreateBookDto) {
     try {
       const res = await this._book.createBook(req);
       return this._responseMessage.Ok(res);
+    } catch (e) {
+      throw new BadRequestException(e.message);
+    }
+  }
+
+  @Put(':id')
+  async updateBook(
+    @Param('id') id: string,
+    @Body(new CustomValidationPipe()) req: CreateBookDto,
+  ) {
+    try {
+      await this._book.updateBook(id, req);
+      return this._responseMessage.Ok();
+    } catch (e) {
+      throw new BadRequestException(e.message);
+    }
+  }
+
+  @Delete(':id')
+  async deleteBook(@Param('id') id: string) {
+    try {
+      await this._book.deleteBook(id);
+      return this._responseMessage.Ok();
     } catch (e) {
       throw new BadRequestException(e.message);
     }

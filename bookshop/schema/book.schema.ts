@@ -3,8 +3,11 @@ import { HydratedDocument, Types } from 'mongoose';
 import { Category } from './category.schema';
 
 export interface IStockHistory {
+  //แปลี่ยนแปลงจำนวนหนังสือ
   amount: number;
+  //stockเก่า
   oldstock: number;
+  //stockใหม่
   stock: number;
   //S=Sold, A=Adject
   actionType: string;
@@ -39,33 +42,6 @@ export class Book {
   stock: number;
   @Prop({ type: Number, default: 0 })
   numberOfSales: number;
-  @Prop({
-    type: [
-      {
-        createdAt: { type: Date, required: true, default: new Date() },
-        accountId: { type: Types.ObjectId, required: true },
-        price: { type: Number, required: true, default: 0 },
-        fullName: { type: String, required: true, default: '' },
-      },
-    ],
-    default: [],
-  })
-  salesHistories: ISaleHistory[];
-
-  @Prop({
-    type: [
-      {
-        amount: { type: Number, required: true, default: 0 },
-        oldstock: { type: Number, required: true, default: 0 },
-        stock: { type: Number, required: true, default: 0 },
-        //S=Sold, A=Adject
-        actionType: { type: String, required: true, default: 'A' },
-        createdAt: { type: Date, required: true, default: new Date() },
-      },
-    ],
-    default: [],
-  })
-  stockHistories: IStockHistory[];
   @Prop({ type: Date, default: new Date() })
   creeatedAt: Date;
   @Prop({ type: Date })
