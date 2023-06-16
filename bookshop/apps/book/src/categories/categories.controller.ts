@@ -38,7 +38,6 @@ export class CategoriesController {
     @Payload() payload: CreateCategoryDto,
   ): Promise<CategoryDto> {
     try {
-      console.log(payload);
       return await this._categoriesService.createCategory(payload);
     } catch (e) {
       throw new RpcException(e.message);

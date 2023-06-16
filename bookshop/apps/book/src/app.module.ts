@@ -18,6 +18,8 @@ import { InventoriesService } from './inventories/inventories.service';
 import { StockHistory, StockHistorySchema } from 'schema/stock-history.schema';
 import { SalesHistory, SalesHistorySchema } from 'schema/sales-history';
 import { UserBook, UserBookSchema } from 'schema/user-book';
+import { ReportsController } from './reports/reports.controller';
+import { ReportsService } from './reports/reports.service';
 
 @Module({
   imports: [
@@ -33,13 +35,19 @@ import { UserBook, UserBookSchema } from 'schema/user-book';
     ]),
     JwtModule.register({ global: true }),
   ],
-  controllers: [BookController, CategoriesController, InventoriesController],
+  controllers: [
+    BookController,
+    CategoriesController,
+    InventoriesController,
+    ReportsController,
+  ],
   providers: [
     BookService,
     JwtAuthenService,
     CategoriesService,
     helperService,
     InventoriesService,
+    ReportsService,
   ],
 })
 export class AppModule {}

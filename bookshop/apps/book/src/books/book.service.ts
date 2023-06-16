@@ -294,6 +294,7 @@ export class BookService {
       });
       book.stock--;
       user.bookOwnerCount++;
+      user.lastPurchaseDate = new Date();
       await salesHistory.save();
       await userBook.save();
       await book.save();
