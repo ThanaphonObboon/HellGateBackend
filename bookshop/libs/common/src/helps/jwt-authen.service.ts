@@ -9,7 +9,7 @@ export class JwtAuthenService {
   async generateJwtToken(
     id: string,
     role: string,
-    expiresIn = '30m',
+    expiresIn = '24h',
   ): Promise<string> {
     const payload: TokenPayloadModel = {
       id,

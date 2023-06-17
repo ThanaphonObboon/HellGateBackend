@@ -20,6 +20,7 @@ import { SalesHistory, SalesHistorySchema } from 'schema/sales-history';
 import { UserBook, UserBookSchema } from 'schema/user-book';
 import { ReportsController } from './reports/reports.controller';
 import { ReportsService } from './reports/reports.service';
+import * as moment from 'moment-timezone';
 
 @Module({
   imports: [
@@ -50,4 +51,9 @@ import { ReportsService } from './reports/reports.service';
     ReportsService,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  constructor() {
+    // กำหนดเวลาเริ่มต้นที่ต้องการ (ตัวอย่างเป็น Asia/Bangkok)
+    moment.tz.setDefault('Asia/Bangkok');
+  }
+}

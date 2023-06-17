@@ -33,6 +33,7 @@ export class AuthGuard implements CanActivate {
     try {
       const payload = await this.jwtService.decodeJwtToken(token);
       const account = await this._userService.getUserById(payload.id);
+      console.log('accc', account);
       if (!account || account.status != 'A') throw new Error();
       // 💡 We're assigning the payload to the request object here
       // so that we can access it in our route handlers

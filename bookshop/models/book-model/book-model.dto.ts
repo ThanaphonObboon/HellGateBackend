@@ -54,6 +54,41 @@ export class BookDto {
   @IsString() //A=Actived, R=Removed
   status: string;
 }
+export class BookReportDto {
+  @Expose()
+  @IsString()
+  @Transform((value: TransformFnParams) => value?.obj?.bookId || 0)
+  bookId: string;
+  @Expose()
+  @IsString()
+  //ชื่อผู้เขียน
+  author: string;
+  @Expose()
+  @IsString()
+  title: string;
+  @Expose()
+  @IsString()
+  description: string;
+  // @Expose()
+  // @IsString()
+  // bookType: string;
+  // @Expose()
+  // @IsNumber()
+  // price: number;
+  // @Expose()
+  // @IsNumber()
+  // stock: number;
+  @Expose()
+  @IsNumber()
+  totalSales: number;
+  @Expose()
+  @IsString()
+  @Transform((value: TransformFnParams) => value?.obj?.categoryId || '')
+  categoryId: string;
+  @Expose()
+  @IsString()
+  categoryName: string;
+}
 
 export class UserBookDto {
   @Expose()

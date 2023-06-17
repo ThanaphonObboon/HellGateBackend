@@ -18,6 +18,10 @@ import { BooksController } from './books/books.controller';
 import { BooksService } from './books/books.service';
 import { InventoriesController } from './inventories/inventories.controller';
 import { InventoriesService } from './inventories/inventories.service';
+import { ReportsController } from './reports/reports.controller';
+import { ReportsService } from './reports/reports.service';
+import * as moment from 'moment-timezone';
+// import {  } from '@nestjs/mapped-types';
 // import * as redisStore from 'cache-manager-redis-store';
 @Module({
   imports: [
@@ -53,6 +57,7 @@ import { InventoriesService } from './inventories/inventories.service';
     CategoriesController,
     BooksController,
     InventoriesController,
+    ReportsController,
   ],
   providers: [
     HttpResponseMessage,
@@ -63,6 +68,11 @@ import { InventoriesService } from './inventories/inventories.service';
     helperService,
     BooksService,
     InventoriesService,
+    ReportsService,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  constructor() {
+    moment.tz.setDefault('Asia/Bangkok');
+  }
+}
