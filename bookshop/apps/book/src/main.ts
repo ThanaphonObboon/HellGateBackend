@@ -6,7 +6,7 @@ async function bootstrap() {
     AppModule,
     {
       transport: Transport.TCP,
-      options: { port: 3001 },
+      options: { port: Number(process.env.SERVICE_PORT) },
     },
   );
   await app.listen();

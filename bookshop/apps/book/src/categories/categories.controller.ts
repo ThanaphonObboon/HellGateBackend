@@ -19,7 +19,7 @@ export class CategoriesController {
     @Payload() param: RequestPageParam,
   ): Promise<PagedResult<CategoryDto>> {
     try {
-      return await this._categoriesService.getCategories(param);
+      return await this._categoriesService.getCategoriesAddCache(param);
     } catch (e) {
       throw new RpcException(e.message);
     }

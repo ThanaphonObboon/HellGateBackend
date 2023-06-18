@@ -9,11 +9,10 @@ import { AuthenController } from './authen/authen.controller';
 import { CacheModule } from '@nestjs/cache-manager';
 import { JwtAuthenService } from '@app/common/helps/jwt-authen.service';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CategoriesController } from './categories/categories.controller';
 import { CategoriesService } from './categories/categories.service';
 import { helperService } from '@app/common/helps/helper.service';
-// import type { RedisClientOptions } from 'redis';
 import { BooksController } from './books/books.controller';
 import { BooksService } from './books/books.service';
 import { InventoriesController } from './inventories/inventories.controller';
@@ -22,33 +21,47 @@ import { ReportsController } from './reports/reports.controller';
 import { ReportsService } from './reports/reports.service';
 import * as moment from 'moment-timezone';
 // import {  } from '@nestjs/mapped-types';
-// import * as redisStore from 'cache-manager-redis-store';
+import { redisStore } from 'cache-manager-redis-store';
 @Module({
   imports: [
-    ClientsModule.register([
+    ClientsModule.registerAsync([
       {
+        imports: [ConfigModule],
         name: 'USER_SERVICE',
-        transport: Transport.TCP,
-        options: { port: 3002 },
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.TCP,
+          options: { port: configService.get<number>('USER_SERVICE_PORT') },
+        }),
+        inject: [ConfigService],
       },
       {
+        imports: [ConfigModule],
         name: 'BOOK_SERVICE',
-        transport: Transport.TCP,
-        options: { port: 3001 },
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.TCP,
+          options: { port: configService.get<number>('BOOK_SERVICE_PORT') },
+        }),
+        inject: [ConfigService],
       },
     ]),
-    // CacheModule.register<RedisClientOptions>({
-    //   store: redisStore,
-
-    //   // Store-specific configuration:
-    //   // host: 'localhost',
-    //   // port: 8082,
-    // }),
-    CacheModule.register({
+    CacheModule.registerAsync<any>({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        store: redisStore,
+        host: configService.get('REDIS_HOST'),
+        port: configService.get('REDIS_PORT'),
+      }),
+      inject: [ConfigService],
       isGlobal: true,
     }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['./apps/bookshop/.env'],
+    }),
+    // CacheModule.register({
+    //   isGlobal: true,
+    // }),
     JwtModule.register({ global: true }),
-    ConfigModule.forRoot(),
   ],
   controllers: [
     UserController,

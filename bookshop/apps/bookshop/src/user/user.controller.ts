@@ -24,6 +24,7 @@ import { CustomValidationPipe } from 'pipes/custom-validation.pipe';
 import { AuthGuard } from '../../../../libs/common/src/helps/auth.guard';
 import { Roles } from '@app/common/helps/roles.decorator';
 import { UserRole } from '@app/common/helps/role.enum';
+import { ConfigService } from '@nestjs/config';
 
 @UseGuards(AuthGuard)
 @Controller('api/users')
@@ -34,9 +35,8 @@ export class UserController {
   ) {}
   @Roles(UserRole.Admin)
   @Get('count-new-member')
-  async countNewMember(@Request() req: any) {
+  async countNewMember() {
     try {
-      console.log(req.user);
       const res = await this._userService.countNewMember();
       return this._responseMessage.Ok(res);
     } catch (e) {

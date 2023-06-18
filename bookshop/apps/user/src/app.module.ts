@@ -8,16 +8,31 @@ import { UserController } from './users/user.controller';
 import { UserService } from './users/user.service';
 import { JwtAuthenService } from '@app/common/helps/jwt-authen.service';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as moment from 'moment-timezone';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-store';
 // import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
     DatabaseModule,
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: './apps/user/.env',
+    }),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     JwtModule.register({ global: true }),
+    CacheModule.registerAsync<any>({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        store: redisStore,
+        host: configService.get('REDIS_HOST'),
+        port: configService.get('REDIS_PORT'),
+      }),
+      inject: [ConfigService],
+      isGlobal: true,
+    }),
   ],
   controllers: [UserController, AuthenController],
   providers: [UserService, AuthenService, JwtAuthenService],

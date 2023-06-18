@@ -9,4 +9,4 @@ services:
   case:
     image: redis
     ports:
-      - 8082:6379
+      - '6379:6379'

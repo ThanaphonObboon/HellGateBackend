@@ -8,13 +8,19 @@ import {
   ParseIntPipe,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { InventoriesService } from './inventories.service';
 import { AdjustInventoriesDto } from 'models/Inventories-model/Inventories-model.dto';
 import { CustomValidationPipe } from 'pipes/custom-validation.pipe';
 import { RequestPageParam } from 'models/pagination-model/request-pagination';
 import { HttpResponseMessage } from '@app/common';
+import { AuthGuard } from '@app/common/helps/auth.guard';
+import { UserRole } from '@app/common/helps/role.enum';
+import { Roles } from '@app/common/helps/roles.decorator';
 
+@UseGuards(AuthGuard)
+@Roles(UserRole.Admin)
 @Controller('api/inventories')
 export class InventoriesController {
   constructor(

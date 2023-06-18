@@ -37,7 +37,6 @@ export class AuthenController {
   @Get('me')
   async GetMe(@Request() req: any) {
     try {
-      console.log(req.user);
       const result = await this._userService.getUserById(req.user.id);
       return this._responseMessage.Ok(result);
     } catch (e) {

@@ -6,6 +6,7 @@ import {
   DefaultValuePipe,
   Delete,
   Get,
+  Inject,
   Param,
   ParseIntPipe,
   Post,
@@ -21,11 +22,14 @@ import { Request } from '@nestjs/common';
 import { AuthGuard } from '@app/common/helps/auth.guard';
 import { Roles } from '@app/common/helps/roles.decorator';
 import { UserRole } from '@app/common/helps/role.enum';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 @Controller('api/books')
 export class BooksController {
   constructor(
     private readonly _book: BooksService,
     private readonly _responseMessage: HttpResponseMessage,
+    @Inject(CACHE_MANAGER) private _cacheManager: Cache,
   ) {}
 
   @Get()

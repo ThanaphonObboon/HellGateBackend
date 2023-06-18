@@ -1,4 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { helperService } from '@app/common/helps/helper.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { plainToClass } from 'class-transformer';
 import {
@@ -13,10 +15,57 @@ import { UserModelDto } from 'models/user-model/user-model.dto';
 import { Model, Types } from 'mongoose';
 import { Category } from 'schema/category.schema';
 import { User } from 'schema/user.schema';
-
+import { Cache } from 'cache-manager';
 @Injectable()
 export class CategoriesService {
-  constructor(@InjectModel(Category.name) private _category: Model<Category>) {}
+  constructor(
+    @InjectModel(Category.name) private _category: Model<Category>,
+    private readonly _helper: helperService,
+    @Inject(CACHE_MANAGER) private _cacheManager: Cache,
+  ) {}
+  async getCategoriesAll(cacheReload: boolean): Promise<CategoryDto[]> {
+    const caches: CategoryDto[] = await this._cacheManager.get('categories');
+    if (!cacheReload && caches) return caches;
+    const categories: Category[] = await this._category
+      .find({
+        status: {
+          $ne: 'D',
+        },
+      })
+      .lean()
+      .exec();
+    const models = categories.map((item) =>
+      this._helper.plainToClass(CategoryDto, item),
+    );
+    await this._cacheManager.set('categories', models, 86400000); //1 day
+    return models;
+  }
+  async getCategoriesAddCache(
+    param: RequestPageParam,
+  ): Promise<PagedResult<CategoryDto>> {
+    const data: CategoryDto[] = await this.getCategoriesAll(false);
+    // console.log(data);
+    const items = data.filter((x) =>
+      x?.categoryName
+        ?.toLowerCase()
+        ?.includes(param?.basicFilter?.toLowerCase()),
+    );
+    param.page = Number(param.page) || 1;
+    param.pageSize = Number(param.pageSize) || 15;
+    param.page = param.page <= 0 ? 1 : param.page;
+    param.pageSize =
+      param.pageSize <= 0 || param.pageSize > 1000 ? 15 : param.pageSize;
+    const page = new PagedResult<CategoryDto>();
+    page.totalItems = items.length;
+    page.thisPages = param.page;
+    page.pageSizes = param.pageSize;
+    page.totalPages = Math.ceil(
+      Number(page.totalItems) / Number(page.pageSizes),
+    );
+    const skip = (page.thisPages - 1) * page.pageSizes;
+    page.items = items.slice(skip, skip + page.pageSizes);
+    return page;
+  }
   async getCategories(
     param: RequestPageParam,
   ): Promise<PagedResult<CategoryDto>> {
@@ -30,16 +79,12 @@ export class CategoriesService {
         { categoryName: new RegExp(param.basicFilter.toString().trim(), 'i') },
       ];
     }
-    // await new Promise((resolve, _) => {
-    //   setTimeout(() => resolve(true), 2000);
-    // });
     param.page = Number(param.page) || 1;
     param.pageSize = Number(param.pageSize) || 15;
     param.page = param.page <= 0 ? 1 : param.page;
     param.pageSize =
       param.pageSize <= 0 || param.pageSize > 1000 ? 15 : param.pageSize;
     const page = new PagedResult<CategoryDto>();
-    // const query = this._userModel.find(options);
     page.totalItems = await this._category.countDocuments(options).exec();
     page.thisPages = param.page;
     page.pageSizes = param.pageSize;
@@ -64,17 +109,11 @@ export class CategoriesService {
 
   async getCategoryById(id: string): Promise<CategoryDto> {
     if (!Types.ObjectId.isValid(id)) throw new Error('รูปแบบของรหัสไม่ถูกต้อง');
-    const category: Category = await this._category
-      .findOne({
-        _id: new Types.ObjectId(id),
-        status: {
-          $ne: 'D',
-        },
-      })
-      .lean()
-      .exec();
+    const category = (await this.getCategoriesAll(false)).find(
+      (x) => x._id === id,
+    );
     if (!category) throw new Error('ไม่พบข้อมูลหมวดหมู่');
-    return plainToClass(CategoryDto, category);
+    return this._helper.plainToClass(CategoryDto, category);
   }
 
   async createCategory(val: CreateCategoryDto): Promise<CategoryDto> {
@@ -97,6 +136,7 @@ export class CategoriesService {
       status: 'A',
     });
     const data = await categoryDocument.save();
+    await this.getCategoriesAll(true);
     return data as unknown as CategoryDto;
   }
 
@@ -127,6 +167,7 @@ export class CategoriesService {
     category.categoryName = val.categoryName;
     category.updatedAt = new Date();
     await category.save();
+    await this.getCategoriesAll(true);
   }
   async deleteCategory(id: string): Promise<void> {
     if (!Types.ObjectId.isValid(id)) throw new Error('รูปแบบของรหัสไม่ถูกต้อง');
@@ -142,5 +183,6 @@ export class CategoriesService {
     category.status = 'D';
     category.updatedAt = new Date();
     await category.save();
+    await this.getCategoriesAll(true);
   }
 }

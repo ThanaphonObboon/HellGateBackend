@@ -1,11 +1,17 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { TokenPayloadModel } from 'models/authen-model/token-payload.model';
 
 @Injectable()
 export class JwtAuthenService {
-  private readonly _secret: string = 'asdmasdasdoajpdioajdioshjio1256d456412';
-  constructor(private jwtService: JwtService) {}
+  private readonly _secret: string = '';
+  constructor(
+    private readonly jwtService: JwtService,
+    private _configService: ConfigService,
+  ) {
+    this._secret = this._configService.get<string>('JWT_SECRET');
+  }
   async generateJwtToken(
     id: string,
     role: string,

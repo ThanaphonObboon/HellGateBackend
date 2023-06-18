@@ -9,12 +9,16 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { HttpResponseMessage } from '@app/common';
 import { RequestPageParam } from 'models/pagination-model/request-pagination';
 import { CreateCategoryDto } from 'models/category-model/category-model.dto';
 import { CustomValidationPipe } from 'pipes/custom-validation.pipe';
+import { AuthGuard } from '@app/common/helps/auth.guard';
+import { Roles } from '@app/common/helps/roles.decorator';
+import { UserRole } from '@app/common/helps/role.enum';
 
 @Controller('api/categories')
 export class CategoriesController {
@@ -50,6 +54,8 @@ export class CategoriesController {
       throw new BadRequestException(e.message);
     }
   }
+  @UseGuards(AuthGuard)
+  @Roles(UserRole.Admin)
   @Post()
   async createCategory(
     @Body(new CustomValidationPipe()) body: CreateCategoryDto,
@@ -61,6 +67,8 @@ export class CategoriesController {
       throw new BadRequestException(e.message);
     }
   }
+  @UseGuards(AuthGuard)
+  @Roles(UserRole.Admin)
   @Put(':id')
   async updateCategory(
     @Param('id') id: string,
@@ -73,7 +81,8 @@ export class CategoriesController {
       throw new BadRequestException(e.message);
     }
   }
-
+  @UseGuards(AuthGuard)
+  @Roles(UserRole.Admin)
   @Delete(':id')
   async deleteCategory(@Param('id') id: string) {
     try {

@@ -7,13 +7,19 @@ import {
   ParseIntPipe,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { helperService } from '@app/common/helps/helper.service';
 import { HttpResponseMessage } from '@app/common';
 import { CustomValidationPipe } from 'pipes/custom-validation.pipe';
 import { PostReportSalesCategoryDto } from 'models/report-model/report-model.dto';
+import { AuthGuard } from '@app/common/helps/auth.guard';
+import { UserRole } from '@app/common/helps/role.enum';
+import { Roles } from '@app/common/helps/roles.decorator';
 
+@UseGuards(AuthGuard)
+@Roles(UserRole.Admin)
 @Controller('api/reports')
 export class ReportsController {
   constructor(
@@ -64,13 +70,4 @@ export class ReportsController {
       throw new BadRequestException(e.message);
     }
   }
-  // @Get('stock')
-  // async getBuyBookRanking() {
-  //   try {
-  //     const res = await this._reportService.getBuyBookRanking();
-  //     return this._httpMessage.Ok(res);
-  //   } catch (e) {
-  //     throw new BadRequestException(e.message);
-  //   }
-  // }
 }
