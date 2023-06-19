@@ -9,8 +9,8 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   const config = new DocumentBuilder()
-    .setTitle('Cats example')
-    .setDescription('The cats API description')
+    .setTitle('Bookshop example')
+    .setDescription('Bookshop API description')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
