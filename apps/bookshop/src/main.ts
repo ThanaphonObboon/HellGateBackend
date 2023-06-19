@@ -9,7 +9,7 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   const config = new DocumentBuilder()
-    .setTitle('Bookshop example')
+    .setTitle('Bookshop API')
     .setDescription('Bookshop API description')
     .setVersion('1.0')
     .addBearerAuth()
