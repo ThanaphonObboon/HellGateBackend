@@ -11,14 +11,25 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { InventoriesService } from './inventories.service';
-import { AdjustInventoriesDto } from 'models/Inventories-model/Inventories-model.dto';
+import {
+  AdjustInventoriesDto,
+  StockHistoryDto,
+} from 'models/Inventories-model/Inventories-model.dto';
 import { CustomValidationPipe } from 'pipes/custom-validation.pipe';
 import { RequestPageParam } from 'models/pagination-model/request-pagination';
 import { HttpResponseMessage } from '@app/common';
 import { AuthGuard } from '@app/common/helps/auth.guard';
 import { UserRole } from '@app/common/helps/role.enum';
 import { Roles } from '@app/common/helps/roles.decorator';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
+import { ApiOkResponsePaginated } from '@app/common/helps/api-ok-response-paginated';
 
+@ApiTags('inventories')
 @UseGuards(AuthGuard)
 @Roles(UserRole.Admin)
 @Controller('api/inventories')
@@ -28,6 +39,11 @@ export class InventoriesController {
     private readonly _responseMessage: HttpResponseMessage,
   ) {}
 
+  @ApiOkResponse({
+    description: 'success',
+    type: String,
+  })
+  @ApiBearerAuth()
   @Put(':id/adjustStock')
   async adjustStock(
     @Param('id') bookId: string,
@@ -40,6 +56,11 @@ export class InventoriesController {
       throw new BadRequestException(e.message);
     }
   }
+  @ApiOkResponsePaginated(StockHistoryDto)
+  @ApiQuery({ name: 'pageSize', required: false, type: Number })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'basicFilter', required: false, type: String })
+  @ApiQuery({ name: 'bookId', required: false, type: String })
   @Get()
   async getInventories(
     @Query('pageSize', new DefaultValuePipe(15), ParseIntPipe) pageSize: number,

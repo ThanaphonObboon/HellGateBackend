@@ -14,7 +14,10 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { RequestPageParam } from 'models/pagination-model/request-pagination';
+import {
+  PagedResult,
+  RequestPageParam,
+} from 'models/pagination-model/request-pagination';
 import { BooksService } from './books.service';
 import { CreateBookDto } from 'models/book-model/book-create-model.dto';
 import { CustomValidationPipe } from 'pipes/custom-validation.pipe';
@@ -24,6 +27,17 @@ import { Roles } from '@app/common/helps/roles.decorator';
 import { UserRole } from '@app/common/helps/role.enum';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
+import { AuthenUserModelDto } from 'models/user-model/authen-user-model.dto';
+import { BookDto } from 'models/book-model/book-model.dto';
+import { ApiOkResponsePaginated } from '@app/common/helps/api-ok-response-paginated';
+
+@ApiTags('books')
 @Controller('api/books')
 export class BooksController {
   constructor(
@@ -32,16 +46,28 @@ export class BooksController {
     @Inject(CACHE_MANAGER) private _cacheManager: Cache,
   ) {}
 
+  // @ApiOkResponse({
+  //   description: 'success',
+  //   type: PagedResult<BookDto>,
+  // })
+  @ApiOkResponsePaginated(BookDto)
+  @ApiQuery({ name: 'pageSize', required: false, type: Number })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'basicFilter', required: false, type: String })
+  @ApiQuery({ name: 'categoryId', required: false, type: String })
+  @ApiQuery({ name: 'sortbyStock', required: false, type: Number })
+  @ApiQuery({ name: 'sortbyPrice', required: false, type: Number })
   @Get()
   async getBooks(
-    @Query('pageSize', new DefaultValuePipe(15), ParseIntPipe) pageSize: number,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('basicFilter', new DefaultValuePipe('')) basicFilter: string,
-    @Query('categoryId', new DefaultValuePipe('')) categoryId: string,
+    @Query('pageSize', new DefaultValuePipe(15), ParseIntPipe)
+    pageSize?: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
+    @Query('basicFilter', new DefaultValuePipe('')) basicFilter?: string,
+    @Query('categoryId', new DefaultValuePipe('')) categoryId?: string,
     @Query('sortbyStock', new DefaultValuePipe(0), ParseIntPipe)
-    sortbyStock: number,
+    sortbyStock?: number,
     @Query('sortbyPrice', new DefaultValuePipe(0), ParseIntPipe)
-    sortbyPrice: number,
+    sortbyPrice?: number,
   ) {
     try {
       const param = new RequestPageParam();
@@ -59,6 +85,10 @@ export class BooksController {
       throw new BadRequestException(e.message);
     }
   }
+  @ApiOkResponse({
+    description: 'success',
+    type: BookDto,
+  })
   @Get(':id')
   async GetBooksById(@Param('id') id: string) {
     try {
@@ -68,6 +98,11 @@ export class BooksController {
       throw new BadRequestException(e.message);
     }
   }
+  @ApiOkResponse({
+    description: 'success',
+    type: BookDto,
+  })
+  @ApiBearerAuth()
   @UseGuards(AuthGuard)
   @Roles(UserRole.Admin)
   @Post()
@@ -79,6 +114,11 @@ export class BooksController {
       throw new BadRequestException(e.message);
     }
   }
+  @ApiBearerAuth()
+  @ApiOkResponse({
+    description: 'success',
+    type: String,
+  })
   @UseGuards(AuthGuard)
   @Roles(UserRole.Admin)
   @Put(':id')
@@ -93,6 +133,11 @@ export class BooksController {
       throw new BadRequestException(e.message);
     }
   }
+  @ApiBearerAuth()
+  @ApiOkResponse({
+    description: 'success',
+    type: String,
+  })
   @UseGuards(AuthGuard)
   @Roles(UserRole.Admin)
   @Delete(':id')
@@ -105,7 +150,11 @@ export class BooksController {
     }
   }
   @UseGuards(AuthGuard)
-  // @Get(':bookId/buy')
+  @ApiBearerAuth()
+  @ApiOkResponsePaginated(BookDto)
+  @ApiQuery({ name: 'pageSize', required: false, type: Number })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'basicFilter', required: false, type: Number })
   @Get('me/owners')
   async ownerBook(
     @Request() req: any,
@@ -124,6 +173,11 @@ export class BooksController {
       throw new BadRequestException(e.message);
     }
   }
+  @ApiOkResponse({
+    description: 'success',
+    type: BookDto,
+  })
+  @ApiBearerAuth()
   @UseGuards(AuthGuard)
   @Post(':bookId/buy')
   async userBuyBook(@Request() req: any, @Param('bookId') bookId: string) {

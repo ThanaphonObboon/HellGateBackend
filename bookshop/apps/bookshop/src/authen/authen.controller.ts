@@ -11,19 +11,25 @@ import { AuthenService } from './authen.service';
 import { HttpResponseMessage } from '@app/common';
 import { CreateUserModelDto } from 'models/user-model/create-user-model.dto';
 import { UserService } from '../user/user.service';
-import { JwtAuthenService } from '@app/common/helps/jwt-authen.service';
 import { Request } from '@nestjs/common';
 import { AuthGuard } from '@app/common/helps/auth.guard';
 import { LoginModel } from 'models/user-model/login-user-model.dto';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { AuthenUserModelDto } from 'models/user-model/authen-user-model.dto';
 
+@ApiTags('authen')
 @Controller('api/authen')
 export class AuthenController {
   constructor(
     private readonly _authenService: AuthenService,
     private readonly _userService: UserService,
-    private readonly _responseMessage: HttpResponseMessage,
-    private readonly _jwtAuthenService: JwtAuthenService,
+    private readonly _responseMessage: HttpResponseMessage, // private readonly _jwtAuthenService: JwtAuthenService,
   ) {}
+
+  @ApiOkResponse({
+    description: 'success',
+    type: AuthenUserModelDto,
+  })
   @Post('signin')
   async login(@Body(new CustomValidationPipe()) body: LoginModel) {
     try {
@@ -33,6 +39,11 @@ export class AuthenController {
       throw new BadRequestException(e.message);
     }
   }
+  @ApiOkResponse({
+    description: 'success',
+    type: AuthenUserModelDto,
+  })
+  @ApiBearerAuth()
   @UseGuards(AuthGuard)
   @Get('me')
   async GetMe(@Request() req: any) {
@@ -43,6 +54,10 @@ export class AuthenController {
       throw new BadRequestException(e.message);
     }
   }
+  @ApiOkResponse({
+    description: 'success',
+    type: AuthenUserModelDto,
+  })
   @Post('signup')
   async signup(@Body(new CustomValidationPipe()) req: CreateUserModelDto) {
     try {

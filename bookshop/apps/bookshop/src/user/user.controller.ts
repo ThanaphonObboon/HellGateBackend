@@ -12,6 +12,7 @@ import {
   UseGuards,
   Request,
   ParseIntPipe,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { RequestPageParam } from 'models/pagination-model/request-pagination';
 import {
@@ -25,7 +26,18 @@ import { AuthGuard } from '../../../../libs/common/src/helps/auth.guard';
 import { Roles } from '@app/common/helps/roles.decorator';
 import { UserRole } from '@app/common/helps/role.enum';
 import { ConfigService } from '@nestjs/config';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
+import { CategoryDto } from 'models/category-model/category-model.dto';
+import { ApiOkResponsePaginated } from '@app/common/helps/api-ok-response-paginated';
+import { UserModelDto } from 'models/user-model/user-model.dto';
 
+@ApiBearerAuth()
+@ApiTags('users')
 @UseGuards(AuthGuard)
 @Controller('api/users')
 export class UserController {
@@ -33,6 +45,10 @@ export class UserController {
     private readonly _userService: UserService,
     private readonly _responseMessage: HttpResponseMessage,
   ) {}
+  @ApiOkResponse({
+    description: 'success',
+    type: Number,
+  })
   @Roles(UserRole.Admin)
   @Get('count-new-member')
   async countNewMember() {
@@ -43,6 +59,10 @@ export class UserController {
       throw new BadRequestException(e.message);
     }
   }
+  @ApiOkResponse({
+    description: 'success',
+    type: Number,
+  })
   @Roles(UserRole.Admin)
   @Get('count-all-member')
   async countAllUser() {
@@ -53,12 +73,16 @@ export class UserController {
       throw new BadRequestException(e.message);
     }
   }
+  @ApiOkResponsePaginated(UserModelDto)
+  @ApiQuery({ name: 'pageSize', required: false, type: Number })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'basicFilter', required: false, type: String })
   @Roles(UserRole.Admin)
   @Get()
   async getUserLists(
-    @Query('pageSize', ParseIntPipe) pageSize = 15,
-    @Query('page', ParseIntPipe) page = 1,
-    @Query('basicFilter') basicFilter = '',
+    @Query('pageSize', new DefaultValuePipe(15), ParseIntPipe) pageSize = 15,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
+    @Query('basicFilter', new DefaultValuePipe('')) basicFilter = '',
   ) {
     try {
       const param = new RequestPageParam();
@@ -71,6 +95,10 @@ export class UserController {
       throw new BadRequestException(e.message);
     }
   }
+  @ApiOkResponse({
+    description: 'success',
+    type: UserModelDto,
+  })
   @Roles(UserRole.Admin)
   @Get(':id')
   async getUserById(@Param('id') id: string) {
@@ -81,6 +109,10 @@ export class UserController {
       throw new BadRequestException(e.message);
     }
   }
+  @ApiOkResponse({
+    description: 'success',
+    type: UserModelDto,
+  })
   @Roles(UserRole.Admin)
   @Post()
   async createUserBo(
@@ -96,6 +128,10 @@ export class UserController {
       throw new BadRequestException(e.message);
     }
   }
+  @ApiOkResponse({
+    description: 'success',
+    type: String,
+  })
   @Put(':id')
   async updateUser(
     @Param('id') id: string,
@@ -108,6 +144,10 @@ export class UserController {
       throw new BadRequestException(e.message);
     }
   }
+  @ApiOkResponse({
+    description: 'success',
+    type: String,
+  })
   @Roles(UserRole.Admin)
   @Delete(':id')
   async deleteUser(@Param('id') id: string) {
@@ -118,6 +158,10 @@ export class UserController {
       throw new BadRequestException(e.message);
     }
   }
+  @ApiOkResponse({
+    description: 'success',
+    type: String,
+  })
   @Put('me/change/password')
   async passwordChange(
     @Request() req: any,
@@ -130,7 +174,10 @@ export class UserController {
       throw new BadRequestException(e.message);
     }
   }
-
+  @ApiOkResponse({
+    description: 'success',
+    type: String,
+  })
   @Roles(UserRole.Admin)
   @Post(':id/block')
   async blockUser(@Request() req: any, @Param('id') id: string) {
@@ -142,6 +189,10 @@ export class UserController {
       throw new BadRequestException(e.message);
     }
   }
+  @ApiOkResponse({
+    description: 'success',
+    type: String,
+  })
   @Roles(UserRole.Admin)
   @Post(':id/active')
   async unblock(@Request() req: any, @Param('id') id: string) {
